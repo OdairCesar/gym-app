@@ -53,7 +53,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const STORAGE_COMPLETED = '@completed_exercises';
 const STORAGE_SKIPPED = '@skipped_exercises';
 const TIMER_KEY = 'training_timer_start';
-const TIMER_KEY_INITIAL = 'training_timer_initial';
+const TIMER_KEY_FINAL = 'training_timer_final';
 
 // Utils para timer
 const getNow = (): number => new Date().getTime();
@@ -90,7 +90,7 @@ function useTrainingTimer(exercisesLeft: number) {
   // Inicializar timer e notificações no início do treino
   useEffect(() => {
     const init = async () => {
-      const timeInitial = await AsyncStorage.getItem(TIMER_KEY_INITIAL);
+      const final = await AsyncStorage.getItem(TIMER_KEY_FINAL);
       const saved = await AsyncStorage.getItem(TIMER_KEY);
       const now = getNow();
 
@@ -99,10 +99,7 @@ function useTrainingTimer(exercisesLeft: number) {
       setStartTime(start);
       if (!saved) await AsyncStorage.setItem(TIMER_KEY, String(start));
 
-      const initial = timeInitial ? Number(timeInitial) : now;
-      if (!timeInitial) await AsyncStorage.setItem(TIMER_KEY_INITIAL, String(initial));
-
-      setElapsed(Math.floor((initial - start) / 1000));
+      setElapsed(Math.floor(((final ? Number(final) : now) - start) / 1000));
 
       // Permissões de notificação
       if (Device.isDevice) {
@@ -115,6 +112,8 @@ function useTrainingTimer(exercisesLeft: number) {
       // Atualiza notificação só se ainda estiver em andamento
       if (exercisesLeft > 0) {
         await scheduleOrUpdateNotification(Math.floor((now - start) / 1000));
+      } else if (!final) {
+        await AsyncStorage.setItem(TIMER_KEY_FINAL, String(getNow()));
       }
     };
 
