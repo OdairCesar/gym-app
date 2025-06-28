@@ -40,7 +40,7 @@ export default function Register() {
   const register = async () => {
     try {
       const response = await fetch(
-        'http://192.168.1.86:8844/api/auth/register',
+        'https://gym-api-24p5.onrender.com/api/auth/register',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

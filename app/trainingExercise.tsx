@@ -42,7 +42,7 @@ export default function TrainingExerciseScreen() {
     }
 
     try {
-      const response = await fetch(`http://192.168.1.86:8844/api/training/${id}`, {
+      const response = await fetch(`https://gym-api-24p5.onrender.com/api/training/${id}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
