@@ -3,6 +3,7 @@ import { Tabs, useRouter } from 'expo-router'
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { AuthProvider, useAuth } from '@/context/authContext'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 function TabBarIcon(props: {
   name: React.ComponentProps<
@@ -46,64 +47,66 @@ export default function ClientLayoutNav() {
   // Se estiver autenticado, renderiza a pilha de rotas normalmente
   return (
     <AuthProvider>
-      <Tabs>
-        <Tabs.Screen
-          name="training"
-          options={{
-            headerShown: false,
-            title: 'Treino',
-            tabBarIcon: ({ color }) => (
-              <TabBarIcon
-                name="card-bulleted-outline"
-                color={color}
-                type="material-community"
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="diet"
-          options={{
-            headerShown: false,
-            title: 'Dieta',
-            tabBarIcon: ({ color }) => (
-              <TabBarIcon
-                name="food-apple-outline"
-                color={color}
-                type="material-community"
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="store"
-          options={{
-            headerShown: false,
-            title: 'Loja',
-            tabBarIcon: ({ color }) => (
-              <TabBarIcon
-                name="store"
-                color={color}
-                type="material-community"
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="perfil"
-          options={{
-            headerShown: false,
-            title: 'Perfil',
-            tabBarIcon: ({ color }) => (
-              <TabBarIcon
-                name="account"
-                color={color}
-                type="material-community"
-              />
-            ),
-          }}
-        />
-      </Tabs>
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        <Tabs>
+          <Tabs.Screen
+            name="training"
+            options={{
+              headerShown: false,
+              title: 'Treino',
+              tabBarIcon: ({ color }) => (
+                <TabBarIcon
+                  name="card-bulleted-outline"
+                  color={color}
+                  type="material-community"
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="diet"
+            options={{
+              headerShown: false,
+              title: 'Dieta',
+              tabBarIcon: ({ color }) => (
+                <TabBarIcon
+                  name="food-apple-outline"
+                  color={color}
+                  type="material-community"
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="store"
+            options={{
+              headerShown: false,
+              title: 'Loja',
+              tabBarIcon: ({ color }) => (
+                <TabBarIcon
+                  name="store"
+                  color={color}
+                  type="material-community"
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="perfil"
+            options={{
+              headerShown: false,
+              title: 'Perfil',
+              tabBarIcon: ({ color }) => (
+                <TabBarIcon
+                  name="account"
+                  color={color}
+                  type="material-community"
+                />
+              ),
+            }}
+          />
+        </Tabs>
+      </SafeAreaView>
     </AuthProvider>
   )
 }

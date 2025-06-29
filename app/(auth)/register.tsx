@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import {
   TextInput,
-  Button,
   Alert,
   View,
   StyleSheet,
@@ -18,6 +17,7 @@ import DateTimePicker, {
 import { MaskedTextInput } from 'react-native-mask-text'
 
 import { useAuth } from '@/context/authContext'
+import { formatDate } from '@/utils/formatDate'
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -69,13 +69,6 @@ export default function Register() {
     setForm({ ...form, isAdmin: value === 'S' })
   const equalsIsAdmin = (value: string) => form.isAdmin === (value === 'S')
 
-  const formatDate = (date: Date): string => {
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = date.getFullYear()
-    return `${day}/${month}/${year}`
-  }
-
   const parseDate = (dateString: string): Date => {
     const [day, month, year] = dateString.split('/').map(Number)
     return new Date(year, month - 1, day)
@@ -102,6 +95,7 @@ export default function Register() {
       keyboardVerticalOffset={100}
     >
       <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
@@ -127,6 +121,8 @@ export default function Register() {
           autoCapitalize="none"
           autoCorrect={false}
         />
+
+        <Text style={styles.hint}>Use pelo menos 6 caracteres</Text>
         <TextInput
           style={styles.input}
           placeholder="Senha"
@@ -137,6 +133,7 @@ export default function Register() {
 
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
+          accessibilityRole="button"
           style={styles.input}
         >
           <Text style={{ color: form.dataNascimento ? '#000' : '#aaa' }}>
@@ -174,19 +171,26 @@ export default function Register() {
           maxLength={14}
         />
 
-        <View>
-          <Text style={styles.radioText}>Sexo:</Text>
-          <View style={styles.radioGroup}>
+        <View style={styles.labelContainer}>
+          <Text style={styles.label}>Sexo:</Text>
+          <View style={styles.radioContainer}>
             {['M', 'F', 'O'].map((sexo) => (
               <TouchableOpacity
                 key={sexo}
-                style={styles.radioOption}
+                style={[
+                  styles.radioButton,
+                  form.sexo === sexo && styles.radioButtonSelected,
+                ]}
                 onPress={() => selectSexo(sexo)}
+                activeOpacity={0.8}
+                accessibilityRole="button"
               >
-                <View style={styles.radioCircle}>
-                  {form.sexo === sexo && <View style={styles.radioSelected} />}
-                </View>
-                <Text style={styles.radioLabel}>
+                <Text
+                  style={[
+                    styles.radioButtonText,
+                    form.sexo === sexo && styles.radioButtonTextSelected,
+                  ]}
+                >
                   {sexo === 'M'
                     ? 'Masculino'
                     : sexo === 'F'
@@ -211,21 +215,25 @@ export default function Register() {
           value={form.endereco}
         />
 
-        <View>
-          <Text style={styles.radioText}>É Administrador:</Text>
-          <View style={styles.radioGroup}>
+        <View style={styles.labelContainer}>
+          <Text style={styles.label}>É Administrador:</Text>
+          <View style={styles.radioContainer}>
             {['S', 'N'].map((isAdmin) => (
               <TouchableOpacity
                 key={isAdmin}
-                style={styles.radioOption}
+                style={[
+                  styles.radioButton,
+                  equalsIsAdmin(isAdmin) && styles.radioButtonSelected,
+                ]}
                 onPress={() => selectIsAdmin(isAdmin)}
+                accessibilityRole="button"
               >
-                <View style={styles.radioCircle}>
-                  {equalsIsAdmin(isAdmin) && (
-                    <View style={styles.radioSelected} />
-                  )}
-                </View>
-                <Text style={styles.radioLabel}>
+                <Text
+                  style={[
+                    styles.radioButtonText,
+                    equalsIsAdmin(isAdmin) && styles.radioButtonTextSelected,
+                  ]}
+                >
                   {isAdmin === 'S' ? 'Sim' : 'Não'}
                 </Text>
               </TouchableOpacity>
@@ -233,7 +241,14 @@ export default function Register() {
           </View>
         </View>
 
-        <Button title="Registrar" onPress={register} />
+        <TouchableOpacity
+          style={styles.button}
+          onPress={register}
+          accessibilityRole="button"
+        >
+          <Text style={styles.buttonText}>Registrar</Text>
+        </TouchableOpacity>
+
         <Link href="/(auth)/login" style={styles.link}>
           Já estou cadastrado
         </Link>
@@ -245,23 +260,43 @@ export default function Register() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 28,
-    paddingVertical: 50,
     gap: 14,
-    flex: 1,
     alignItems: 'stretch',
-    justifyContent: 'center',
   },
   input: {
-    fontSize: 12,
-    padding: 8,
+    fontSize: 14,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#ddd',
+    borderRadius: 8,
     backgroundColor: '#fff',
+    marginBottom: 10,
+  },
+  hint: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: -8,
+    marginTop: -8,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginTop: 12,
+    alignItems: 'center',
+    elevation: 1,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   link: {
-    marginTop: 12,
-    color: 'blue',
+    padding: 15,
+    fontSize: 14,
     textAlign: 'center',
+    color: '#007bff',
+    fontWeight: '500',
   },
   title: {
     fontSize: 24,
@@ -273,35 +308,40 @@ const styles = StyleSheet.create({
     color: '#444',
     textAlign: 'center',
   },
-  radioGroup: {
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  labelContainer: {
     flexDirection: 'row',
-    marginVertical: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
   },
-  radioOption: {
+  radioContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
+    gap: 8,
+    flexWrap: 'wrap',
   },
-  radioCircle: {
-    height: 20,
-    width: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#444',
-    alignItems: 'center',
-    justifyContent: 'center',
+  radioButton: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#f9f9f9',
   },
-  radioSelected: {
-    height: 10,
-    width: 10,
-    borderRadius: 5,
-    backgroundColor: '#444',
+  radioButtonSelected: {
+    backgroundColor: '#007bff',
+    borderColor: '#007bff',
   },
-  radioLabel: {
-    marginLeft: 8,
-    fontSize: 12,
+  radioButtonText: {
+    fontSize: 14,
+    color: '#555',
   },
-  radioText: {
-    fontSize: 12,
+  radioButtonTextSelected: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 })

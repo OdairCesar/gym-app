@@ -1,7 +1,14 @@
 import React, { useState } from 'react'
-import { TextInput, StyleSheet, Button, View, Alert } from 'react-native'
+import {
+  TextInput,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native'
 import { useRouter, Link } from 'expo-router'
-
 import { useAuth } from '@/context/authContext'
 
 export default function LoginScreen() {
@@ -23,33 +30,33 @@ export default function LoginScreen() {
 
       const data = await response.json()
 
-      if (!data.status) {
-        Alert.alert('Erro', 'Erro ao logar')
-        return
-      }
-
-      if (data.status === 'error') {
+      if (!data.status || data.status === 'error') {
         Alert.alert('Erro', data.message || 'Erro ao logar')
         return
       }
 
-      if (data.status === 'success') {
-        await login(data.data.token, data.data.user)
-        router.push('/(client)/training') // Após o registro, navega para a tela de login
-      }
-    } catch (err) {
+      await login(data.data.token, data.data.user)
+      router.push('/(client)/training')
+    } catch {
       Alert.alert('Erro', 'Erro de rede')
     }
   }
 
   return (
-    <View style={styles.container} onStartShouldSetResponder={() => true}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <Text style={styles.title}>Bem-vindo de volta 👋</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Email"
         value={email}
         autoCapitalize="none"
+        keyboardType="email-address"
         onChangeText={setEmail}
+        placeholderTextColor="#aaa"
       />
       <TextInput
         style={styles.input}
@@ -58,33 +65,63 @@ export default function LoginScreen() {
         value={password}
         autoCapitalize="none"
         onChangeText={setPassword}
+        placeholderTextColor="#aaa"
       />
-      <Button title="Entrar" onPress={handleLogin} />
+
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Entrar</Text>
+      </TouchableOpacity>
+
       <Link style={styles.link} href="/(auth)/register">
-        Não tem uma conta? Registre-se
+        Não tem uma conta? <Text style={styles.linkHighlight}>Registre-se</Text>
       </Link>
-    </View>
+    </KeyboardAvoidingView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'stretch',
     justifyContent: 'center',
-    gap: 16,
-    paddingBlock: 0,
     paddingHorizontal: 28,
+    backgroundColor: '#f9f9f9',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 32,
+    textAlign: 'center',
+    color: '#333',
   },
   input: {
-    padding: 8,
-    margin: 0,
-    borderWidth: 1,
-    borderColor: '#ccc',
     backgroundColor: '#fff',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   link: {
-    marginTop: 12,
-    color: 'blue',
+    textAlign: 'center',
+    marginTop: 24,
+    fontSize: 14,
+    color: '#555',
+  },
+  linkHighlight: {
+    color: '#007bff',
+    fontWeight: 'bold',
   },
 })

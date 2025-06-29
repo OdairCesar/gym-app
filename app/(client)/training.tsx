@@ -5,7 +5,7 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  Button,
+  TouchableOpacity,
 } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 
@@ -75,7 +75,8 @@ export default function TrainingScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#000" />
+        <ActivityIndicator size="large" color="#0a84ff" />
+        <Text style={{ marginTop: 8 }}>Carregando treinos...</Text>
       </View>
     )
   }
@@ -83,7 +84,10 @@ export default function TrainingScreen() {
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text>Erro: {error}</Text>
+        <Text style={styles.errorText}>⚠️ {error}</Text>
+        <TouchableOpacity onPress={fetchTrainings} style={styles.retryButton}>
+          <Text style={styles.retryText}>Tentar novamente</Text>
+        </TouchableOpacity>
       </View>
     )
   }
@@ -113,15 +117,17 @@ export default function TrainingScreen() {
               Atualizado em: {new Date(item.updatedAt).toLocaleDateString()}
             </Text>
             <Text style={styles.info}>ID: {item._id}</Text>
-            <Button
-              title="Treinar"
+            <TouchableOpacity
+              style={styles.button}
               onPress={() =>
                 router.push({
                   pathname: '/trainingExercise',
                   params: { id: item._id },
                 })
               }
-            />
+            >
+              <Text style={styles.buttonText}>Treinar</Text>
+            </TouchableOpacity>
           </View>
         )}
       />
@@ -131,7 +137,6 @@ export default function TrainingScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingBlock: 32,
     flex: 1,
   },
   centered: {
@@ -145,6 +150,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: '#fff',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   title: {
     fontSize: 18,
@@ -161,5 +168,37 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#eee',
     textAlign: 'right',
+  },
+  button: {
+    marginTop: 12,
+    backgroundColor: '#0a84ff',
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  errorText: {
+    color: '#d9534f', // vermelho suave, evoca erro mas sem ser agressivo
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  retryText: {
+    color: '#0a84ff', // azul vibrante para chamar atenção
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  retryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#eef6ff',
+    borderRadius: 6,
   },
 })

@@ -69,8 +69,12 @@ export default function TrainingExerciseScreen() {
       }
 
       if (data.status === 'success') setTraining(data.data)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Erro desconhecido ao carregar o treino.')
+      }
     } finally {
       setLoading(false)
     }
@@ -167,7 +171,8 @@ export default function TrainingExerciseScreen() {
   const seconds = elapsed % 60
 
   useEffect(() => {
-    if (exercisesToShow.length === 0) void Notifications.cancelAllScheduledNotificationsAsync()
+    if (exercisesToShow.length === 0)
+      Notifications.cancelAllScheduledNotificationsAsync()
   }, [exercisesToShow])
 
   if (loading) {
@@ -231,12 +236,16 @@ export default function TrainingExerciseScreen() {
         {exercisesToShow.length === 0 && (
           <View style={styles.centered}>
             <Text style={{ fontSize: 18, color: 'green' }}>
-              Treino Finalizado! 🎉
+              {filter === 'completed'
+                ? 'Não há exercícios concluídos!'
+                : filter === 'skipped'
+                  ? 'Não há exercícios pulados!'
+                  : 'Treino Finalizado! 🎉'}
             </Text>
           </View>
         )}
 
-        {exercisesToShow.map((exercicio, idx) => {
+        {exercisesToShow.map((exercicio) => {
           const originalIndex = orderedExercises.indexOf(exercicio)
 
           return (
@@ -256,10 +265,10 @@ export default function TrainingExerciseScreen() {
 }
 
 const styles = StyleSheet.create({
-  centered: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   timerText: {
     fontSize: 18,

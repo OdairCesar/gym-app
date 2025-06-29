@@ -67,6 +67,22 @@ function RootLayoutNav() {
               title: 'Exercicios',
             }}
           />
+          <Stack.Screen
+            name="changePassword"
+            options={{
+              headerShown: true,
+              presentation: 'modal',
+              title: 'Trocar Senha',
+            }}
+          />
+          <Stack.Screen
+            name="editProfile"
+            options={{
+              headerShown: true,
+              presentation: 'modal',
+              title: 'Editar Perfil',
+            }}
+          />
         </Stack>
       </AuthProvider>
     </ThemeProvider>

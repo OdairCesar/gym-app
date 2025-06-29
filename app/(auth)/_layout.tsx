@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Stack, useRouter } from 'expo-router'
 
 import { AuthProvider, useAuth } from '@/context/authContext'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function AuthLayoutNav() {
   const { getIsAuthenticated } = useAuth()
@@ -21,10 +22,12 @@ export default function AuthLayoutNav() {
 
   return (
     <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
-      </Stack>
+      <SafeAreaView style={{ flex: 1 }}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+        </Stack>
+      </SafeAreaView>
     </AuthProvider>
   )
 }
