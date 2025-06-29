@@ -190,8 +190,8 @@ export default function Register() {
                   {sexo === 'M'
                     ? 'Masculino'
                     : sexo === 'F'
-                    ? 'Feminino'
-                    : 'Outro'}
+                      ? 'Feminino'
+                      : 'Outro'}
                 </Text>
               </TouchableOpacity>
             ))}

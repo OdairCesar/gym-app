@@ -7,8 +7,9 @@ import {
   StyleSheet,
   Button,
 } from 'react-native'
-import { useAuth } from '@/context/authContext'
 import { useFocusEffect, useRouter } from 'expo-router'
+
+import { useAuth } from '@/context/authContext'
 import { Training } from '@/interfaces/Training'
 
 export default function TrainingScreen() {
@@ -29,14 +30,17 @@ export default function TrainingScreen() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`https://gym-api-24p5.onrender.com/api/training`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          // Adicione o token de autenticação se necessário
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `https://gym-api-24p5.onrender.com/api/training`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // Adicione o token de autenticação se necessário
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
 
       const data = await response.json()
 
@@ -50,12 +54,13 @@ export default function TrainingScreen() {
         return
       }
 
-      if (data.status === 'success') {
-        console.log('Treinos carregados com sucesso:', data.data)
-        setTrainings(data.data)
+      if (data.status === 'success') setTrainings(data.data)
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Erro desconhecido ao carregar os treinos.')
       }
-    } catch (err: any) {
-      setError(err.message)
     } finally {
       setLoading(false)
     }

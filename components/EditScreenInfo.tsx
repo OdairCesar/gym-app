@@ -32,8 +32,7 @@ export default function EditScreenInfo({ path }: { path: string }) {
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)"
         >
-          Change any of the text, save the file, and your app will automatically
-          update.
+          Alterações no código são refletidas automaticamente no aplicativo.
         </Text>
       </View>
 
@@ -43,8 +42,8 @@ export default function EditScreenInfo({ path }: { path: string }) {
           href="https://docs.expo.io/get-started/create-a-new-app/#opening-the-app-on-your-phonetablet"
         >
           <Text style={styles.helpLinkText} lightColor={Colors.light.tint}>
-            Tap here if your app doesn't automatically update after making
-            changes
+            Essa página é atualizada automaticamente quando você salva as
+            alterações.
           </Text>
         </ExternalLink>
       </View>
