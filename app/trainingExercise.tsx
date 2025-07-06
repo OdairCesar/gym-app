@@ -23,6 +23,7 @@ import { ExerciseItem } from '@/components/ExerciseItem'
 import { useTrainingTimer } from '@/hooks/useTrainingTimer'
 import { STORAGE_COMPLETED, STORAGE_SKIPPED } from '@/constants/storageKeys'
 import '@/utils/notificationHandler' // apenas importa para registrar o handler
+import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 import { Training } from '@/interfaces/Training'
 
@@ -51,7 +52,7 @@ export default function TrainingExerciseScreen() {
 
     try {
       const response = await fetch(
-        `https://gym-api-24p5.onrender.com/api/training/${id}`,
+        buildApiUrl(API_ENDPOINTS.TRAINING_BY_ID(id)),
         {
           headers: {
             'Content-Type': 'application/json',

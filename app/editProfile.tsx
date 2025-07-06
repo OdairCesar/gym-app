@@ -9,6 +9,7 @@ import {
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/authContext'
 import { useRouter } from 'expo-router'
+import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function EditProfileScreen() {
   const { getUser, getToken } = useAuth()
@@ -47,7 +48,7 @@ export default function EditProfileScreen() {
   const handleUpdate = async () => {
     try {
       const token = await getToken()
-      const res = await fetch('https://gym-api-24p5.onrender.com/api/user', {
+      const res = await fetch(buildApiUrl(API_ENDPOINTS.USER), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { useRouter, Link } from 'expo-router'
 import { useAuth } from '@/context/authContext'
+import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
@@ -19,14 +20,11 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch(
-        `https://gym-api-24p5.onrender.com/api/auth/login`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        },
-      )
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.LOGIN), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
 
       const data = await response.json()
 

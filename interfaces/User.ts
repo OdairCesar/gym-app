@@ -1,4 +1,5 @@
 export interface User {
+  _id?: string
   nome: string
   email: string
   password: string
@@ -8,6 +9,8 @@ export interface User {
   sexo?: 'M' | 'F' | 'O'
   profissao?: string
   endereco?: string
+  diet_id?: string
   isAdmin?: boolean
+  isPersonal?: boolean
   isActive?: boolean
 }

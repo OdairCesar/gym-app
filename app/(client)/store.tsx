@@ -15,6 +15,7 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { useAuth } from '@/context/authContext'
 import { Product } from '@/interfaces/Product'
 import { ProductCard } from '@/components/ProductCard'
+import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function StoreScreen() {
   const [products, setProducts] = useState<Product[]>([])
@@ -30,16 +31,13 @@ export default function StoreScreen() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(
-        `https://gym-api-24p5.onrender.com/api/product`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.PRODUCT), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      )
+      })
 
       const data = await response.json()
 

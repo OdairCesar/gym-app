@@ -11,6 +11,7 @@ import { useFocusEffect, useRouter } from 'expo-router'
 
 import { useAuth } from '@/context/authContext'
 import { Training } from '@/interfaces/Training'
+import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function TrainingScreen() {
   const [trainings, setTrainings] = useState<Training[]>([])
@@ -30,17 +31,13 @@ export default function TrainingScreen() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(
-        `https://gym-api-24p5.onrender.com/api/training`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            // Adicione o token de autenticação se necessário
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.TRAINING), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      )
+      })
 
       const data = await response.json()
 
@@ -151,7 +148,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#e8e8e8',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
   },
   title: {
     fontSize: 18,

@@ -9,6 +9,7 @@ import {
 import { useState } from 'react'
 import { useAuth } from '@/context/authContext'
 import { useRouter } from 'expo-router'
+import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function ChangePasswordScreen() {
   const { getToken } = useAuth()
@@ -28,20 +29,17 @@ export default function ChangePasswordScreen() {
 
     try {
       const token = await getToken()
-      const res = await fetch(
-        'https://gym-api-24p5.onrender.com/api/auth/change-password',
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            currentPassword: form.current,
-            newPassword: form.new,
-          }),
+      const res = await fetch(buildApiUrl(API_ENDPOINTS.CHANGE_PASSWORD), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      )
+        body: JSON.stringify({
+          currentPassword: form.current,
+          newPassword: form.new,
+        }),
+      })
 
       const data = await res.json()
 

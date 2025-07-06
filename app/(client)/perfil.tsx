@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router'
 import { ProfileInfoRow } from '@/components/ProfileInfoRow'
 import { formatDate } from '@/utils/formatDate'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function ProfileScreen() {
   const { getUser, getToken, logout } = useAuth()
@@ -36,7 +37,7 @@ export default function ProfileScreen() {
       }
 
       const token = await getToken()
-      const res = await fetch('https://gym-api-24p5.onrender.com/api/user', {
+      const res = await fetch(buildApiUrl(API_ENDPOINTS.USER), {
         headers: {
           Authorization: `Bearer ${token}`,
         },

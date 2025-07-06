@@ -18,6 +18,7 @@ import { MaskedTextInput } from 'react-native-mask-text'
 
 import { useAuth } from '@/context/authContext'
 import { formatDate } from '@/utils/formatDate'
+import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -39,14 +40,11 @@ export default function Register() {
 
   const register = async () => {
     try {
-      const response = await fetch(
-        'https://gym-api-24p5.onrender.com/api/auth/register',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
-        },
-      )
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.REGISTER), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
 
       const data = await response.json()
 
