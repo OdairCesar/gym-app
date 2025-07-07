@@ -48,7 +48,7 @@ export default function EditProfileScreen() {
   const handleUpdate = async () => {
     try {
       const token = await getToken()
-      const res = await fetch(buildApiUrl(API_ENDPOINTS.USER), {
+      const res = await fetch(buildApiUrl(API_ENDPOINTS.USER_ME), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

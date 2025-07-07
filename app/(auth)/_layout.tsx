@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from '@/context/authContext'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function AuthLayoutNav() {
-  const { getIsAuthenticated } = useAuth()
+  const { getIsAuthenticated, isAdmin, isPersonal } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -13,12 +13,21 @@ export default function AuthLayoutNav() {
       const isAuth = await getIsAuthenticated()
 
       if (isAuth) {
-        router.replace('/(client)/training')
+        const userIsAdmin = await isAdmin()
+        const userIsPersonal = await isPersonal()
+
+        if (userIsAdmin) {
+          router.replace('/(admin)/users')
+        } else if (userIsPersonal) {
+          router.replace('/(personal)/trainings')
+        } else {
+          router.replace('/(client)/training')
+        }
       }
     }
 
     checkAuth()
-  }, [getIsAuthenticated])
+  }, [getIsAuthenticated, isAdmin, isPersonal, router])
 
   return (
     <AuthProvider>

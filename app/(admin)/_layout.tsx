@@ -27,7 +27,7 @@ function TabBarIcon(props: {
   }
 }
 
-export default function ClientLayoutNav() {
+export default function AdminLayoutNav() {
   const { getIsAuthenticated, isAdmin, isPersonal } = useAuth()
   const router = useRouter()
 
@@ -39,13 +39,13 @@ export default function ClientLayoutNav() {
 
       if (!isAuth) {
         router.replace('/(auth)/login')
-        return null
+        return
       }
 
-      if (!userIsAdmin && !userIsPersonal) return
+      if (userIsAdmin) return
 
       if (!userIsPersonal) {
-        router.replace('/(admin)/trainings')
+        router.replace('/(client)/training')
         return
       }
 
@@ -53,9 +53,8 @@ export default function ClientLayoutNav() {
     }
 
     checkAuth()
-  }, [getIsAuthenticated])
+  }, [getIsAuthenticated, isAdmin, isPersonal, router])
 
-  // Se estiver autenticado, renderiza a pilha de rotas normalmente
   return (
     <AuthProvider>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
@@ -72,10 +71,24 @@ export default function ClientLayoutNav() {
           }}
         >
           <Tabs.Screen
-            name="training"
+            name="users"
             options={{
               headerShown: false,
-              title: 'Treino',
+              title: 'Usuários',
+              tabBarIcon: ({ color }) => (
+                <TabBarIcon
+                  name="account-group"
+                  color={color}
+                  type="material-community"
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="trainings"
+            options={{
+              headerShown: false,
+              title: 'Treinos',
               tabBarIcon: ({ color }) => (
                 <TabBarIcon
                   name="dumbbell"
@@ -86,10 +99,10 @@ export default function ClientLayoutNav() {
             }}
           />
           <Tabs.Screen
-            name="diet"
+            name="diets"
             options={{
               headerShown: false,
-              title: 'Dieta',
+              title: 'Dietas',
               tabBarIcon: ({ color }) => (
                 <TabBarIcon
                   name="food-apple"
@@ -100,10 +113,10 @@ export default function ClientLayoutNav() {
             }}
           />
           <Tabs.Screen
-            name="store"
+            name="products"
             options={{
               headerShown: false,
-              title: 'Loja',
+              title: 'Produtos',
               tabBarIcon: ({ color }) => (
                 <TabBarIcon
                   name="package-variant"

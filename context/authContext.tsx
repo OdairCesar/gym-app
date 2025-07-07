@@ -10,6 +10,8 @@ interface AuthContextType {
   logout: () => Promise<void>
   getUser: () => Promise<User | null>
   getToken: () => Promise<string | null>
+  isAdmin: () => Promise<boolean>
+  isPersonal: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -46,6 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             profissao: result.profissao || '',
             endereco: result.endereco || '',
             isAdmin: result.isAdmin || false,
+            isPersonal: result.isPersonal || false,
             isActive: result.isActive || true,
           }
 
@@ -79,9 +82,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.replace('/(auth)/login')
   }
 
+  const isAdmin = async () => {
+    const user = await getUser()
+    return user?.isAdmin || false
+  }
+
+  const isPersonal = async () => {
+    const user = await getUser()
+    return user?.isPersonal || false
+  }
+
   return (
     <AuthContext.Provider
-      value={{ getIsAuthenticated, login, logout, getUser, getToken }}
+      value={{
+        getIsAuthenticated,
+        login,
+        logout,
+        getUser,
+        getToken,
+        isAdmin,
+        isPersonal,
+      }}
     >
       {children}
     </AuthContext.Provider>

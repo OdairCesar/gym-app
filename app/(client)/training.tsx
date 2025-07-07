@@ -12,6 +12,7 @@ import { useFocusEffect, useRouter } from 'expo-router'
 import { useAuth } from '@/context/authContext'
 import { Training } from '@/interfaces/Training'
 import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 export default function TrainingScreen() {
   const [trainings, setTrainings] = useState<Training[]>([])
@@ -31,7 +32,7 @@ export default function TrainingScreen() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.TRAINING), {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.TRAINING_ME), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +82,8 @@ export default function TrainingScreen() {
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>⚠️ {error}</Text>
+        <MaterialCommunityIcons name="dumbbell" size={48} color="#d9534f" />
+        <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity onPress={fetchTrainings} style={styles.retryButton}>
           <Text style={styles.retryText}>Tentar novamente</Text>
         </TouchableOpacity>
@@ -194,16 +196,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   retryText: {
-    color: '#0a84ff', // azul vibrante para chamar atenção
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
   retryButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#eef6ff',
-    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#0a84ff',
+    borderRadius: 8,
   },
 })

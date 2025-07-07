@@ -4,7 +4,8 @@
  */
 
 // Base URL da API
-export const API_BASE_URL = 'https://gym-api-24p5.onrender.com'
+// export const API_BASE_URL = 'https://gym-api-24p5.onrender.com'
+export const API_BASE_URL = 'http://192.168.1.93:8844'
 
 // Endpoints da API
 export const API_ENDPOINTS = {
@@ -16,17 +17,21 @@ export const API_ENDPOINTS = {
   // Training
   TRAINING: '/api/training',
   TRAINING_BY_ID: (id: string) => `/api/training/${id}`,
+  TRAINING_ME: '/api/training/me',
 
   // Diet
+  DIET: '/api/diet',
+  DIET_BY_ID: (id: string) => `/api/diet/${id}`,
   DIET_ME: '/api/diet/me',
 
   // Products
-  PRODUCTS: '/api/products',
   PRODUCT: '/api/product',
+  PRODUCT_BY_ID: (id: string) => `/api/product/${id}`,
 
   // User
   USER: '/api/user',
-  USER_PROFILE: '/api/user/profile',
+  USER_BY_ID: (id: string) => `/api/user/${id}`,
+  USER_ME: '/api/user/me',
 } as const
 
 /**

@@ -22,7 +22,7 @@ import { useAuth } from '@/context/authContext'
 import { ExerciseItem } from '@/components/ExerciseItem'
 import { useTrainingTimer } from '@/hooks/useTrainingTimer'
 import { STORAGE_COMPLETED, STORAGE_SKIPPED } from '@/constants/storageKeys'
-import '@/utils/notificationHandler' // apenas importa para registrar o handler
+import '@/utils/notificationHandler'
 import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 import { Training } from '@/interfaces/Training'
