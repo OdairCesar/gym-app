@@ -112,9 +112,9 @@ export default function DietFormModal({
                   style={styles.picker}
                 >
                   <Picker.Item label="Selecione um personal..." value="" />
-                  {personals.map((personal) => (
+                  {personals.map((personal, index) => (
                     <Picker.Item
-                      key={personal._id}
+                      key={personal._id || `personal-${index}`}
                       label={personal.nome}
                       value={personal._id || ''}
                     />

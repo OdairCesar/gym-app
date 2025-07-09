@@ -94,9 +94,9 @@ export default function TrainingFormModal({
                   style={styles.picker}
                 >
                   <Picker.Item label="Selecione um cliente..." value="" />
-                  {clients.map((client) => (
+                  {clients.map((client, index) => (
                     <Picker.Item
-                      key={client._id}
+                      key={client._id || `client-${index}`}
                       label={client.nome}
                       value={client._id || ''}
                     />
@@ -115,9 +115,9 @@ export default function TrainingFormModal({
                   style={styles.picker}
                 >
                   <Picker.Item label="Selecione um personal..." value="" />
-                  {personals.map((personal) => (
+                  {personals.map((personal, index) => (
                     <Picker.Item
-                      key={personal._id}
+                      key={personal._id || `personal-${index}`}
                       label={personal.nome}
                       value={personal._id || ''}
                     />
