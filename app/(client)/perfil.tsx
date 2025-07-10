@@ -3,59 +3,50 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Alert,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native'
-import { useEffect, useState } from 'react'
-import { useAuth } from '@/context/authContext'
+import { useEffect, useState, useCallback } from 'react'
+import { useAuth as useAuthContext } from '@/context/authContext'
+import { useAuth } from '@/hooks/useAuth'
 import { User } from '@/interfaces/User'
 import { useRouter } from 'expo-router'
 import { ProfileInfoRow } from '@/components/ProfileInfoRow'
 import { formatDate } from '@/utils/formatDate'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function ProfileScreen() {
-  const { getUser, getToken, logout } = useAuth()
+  const { getUser, logout } = useAuthContext()
+  const { fetchCurrentUser } = useAuth()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    fetchUser()
-  }, [])
-
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
-      const user = await getUser()
+      setLoading(true)
 
-      if (user) {
-        setUser(user)
-        setLoading(false)
-        return
+      // Primeiro tenta pegar do storage local
+      let currentUser = await getUser()
+
+      if (!currentUser) {
+        // Se não tiver no storage, busca da API
+        currentUser = await fetchCurrentUser()
       }
 
-      const token = await getToken()
-      const res = await fetch(buildApiUrl(API_ENDPOINTS.USER), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      const data = await res.json()
-
-      if (data.status === 'success') {
-        setUser(data.data)
-      } else {
-        Alert.alert('Erro', data.message || 'Erro ao carregar perfil.')
+      if (currentUser) {
+        setUser(currentUser)
       }
     } catch (err) {
-      Alert.alert('Erro', 'Não foi possível carregar os dados do usuário.')
+      console.error('Erro ao carregar usuário:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [getUser, fetchCurrentUser])
+
+  useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
 
   if (loading) {
     return (

@@ -4,40 +4,23 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { useRouter, Link } from 'expo-router'
-import { useAuth } from '@/context/authContext'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
+import { Link } from 'expo-router'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const router = useRouter()
   const { login } = useAuth()
 
   const handleLogin = async () => {
-    try {
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.LOGIN), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!data.status || data.status === 'error') {
-        Alert.alert('Erro', data.message || 'Erro ao logar')
-        return
-      }
-
-      await login(data.data.token, data.data.user)
-      router.push('/(client)/training')
-    } catch {
-      Alert.alert('Erro', 'Erro de rede')
+    if (!email || !password) {
+      return
     }
+
+    await login({ email, password })
   }
 
   return (

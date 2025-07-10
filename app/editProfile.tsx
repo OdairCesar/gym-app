@@ -3,16 +3,16 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  Alert,
   TouchableOpacity,
 } from 'react-native'
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/context/authContext'
+import { useAuth as useAuthContext } from '@/context/authContext'
+import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'expo-router'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function EditProfileScreen() {
-  const { getUser, getToken } = useAuth()
+  const { getUser } = useAuthContext()
+  const { updateProfile } = useAuth()
   const router = useRouter()
   const [form, setForm] = useState({
     nome: '',
@@ -43,30 +43,22 @@ export default function EditProfileScreen() {
     }
 
     loadUser()
-  }, [])
+  }, [getUser])
 
   const handleUpdate = async () => {
-    try {
-      const token = await getToken()
-      const res = await fetch(buildApiUrl(API_ENDPOINTS.USER_ME), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(form),
-      })
+    // Converter dataNascimento para Date se necessário
+    const userData = {
+      ...form,
+      dataNascimento: form.dataNascimento
+        ? new Date(form.dataNascimento)
+        : undefined,
+      sexo: form.sexo as 'M' | 'F' | 'O',
+    }
 
-      const data = await res.json()
+    const success = await updateProfile(userData)
 
-      if (data.status === 'success') {
-        Alert.alert('Sucesso', 'Perfil atualizado com sucesso!')
-        router.back()
-      } else {
-        Alert.alert('Erro', data.message || 'Não foi possível atualizar.')
-      }
-    } catch (err) {
-      Alert.alert('Erro', 'Houve um erro ao atualizar o perfil.')
+    if (success) {
+      router.back()
     }
   }
 

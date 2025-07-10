@@ -53,7 +53,7 @@ export default function ClientLayoutNav() {
     }
 
     checkAuth()
-  }, [getIsAuthenticated])
+  }, [getIsAuthenticated, isAdmin, isPersonal, router])
 
   // Se estiver autenticado, renderiza a pilha de rotas normalmente
   return (

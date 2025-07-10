@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
-import { useAuth } from '@/context/authContext'
+import { useUsers } from '@/hooks/useUsers'
 import { User } from '@/interfaces/User'
-import { API_ENDPOINTS, buildApiUrl } from '@/constants/api'
 import UserCard from '@/components/admin/UserCard'
 import GenericFormModal, {
   FormField,
@@ -26,8 +25,15 @@ interface FilterState {
 }
 
 export default function UsersScreen() {
-  const { getToken } = useAuth()
-  const [users, setUsers] = useState<User[]>([])
+  const {
+    users,
+    fetchUsers,
+    createUser,
+    updateUser,
+    deleteUser: deleteUserHook,
+    filterUsers,
+  } = useUsers()
+
   const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [refreshing, setRefreshing] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
@@ -61,59 +67,48 @@ export default function UsersScreen() {
     isActive: '',
   })
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      const token = await getToken()
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.USER), {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const json = await response.json()
-        setUsers(json.data)
-        setFilteredUsers(json.data)
-      } else {
-        Alert.alert('Erro', 'Falha ao carregar usuários')
-      }
-    } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
-    } finally {
-      setRefreshing(false)
-    }
-  }, [getToken])
-
   const applyFilters = useCallback(() => {
-    let filtered = [...users]
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        filtered = filtered.filter((user) => {
-          const userValue = user[key as keyof User]
-
-          if (key === 'isAdmin' || key === 'isPersonal' || key === 'isActive') {
-            return userValue?.toString() === value
-          }
-
-          if (key === 'sexo') {
-            return userValue === value
-          }
-
-          return userValue
-            ?.toString()
-            .toLowerCase()
-            .includes(value.toLowerCase())
-        })
-      }
+    const filtered = filterUsers({
+      nome: filters.nome,
+      email: filters.email,
+      sexo: filters.sexo,
+      isAdmin: filters.isAdmin ? filters.isAdmin === 'true' : undefined,
+      isPersonal: filters.isPersonal
+        ? filters.isPersonal === 'true'
+        : undefined,
+      isActive: filters.isActive ? filters.isActive === 'true' : undefined,
     })
 
-    setFilteredUsers(filtered)
+    // Aplicar filtros adicionais manualmente
+    let finalFiltered = [...filtered]
+
+    if (filters.telefone) {
+      finalFiltered = finalFiltered.filter((user) =>
+        user.telefone?.toLowerCase().includes(filters.telefone.toLowerCase()),
+      )
+    }
+
+    if (filters.cpf) {
+      finalFiltered = finalFiltered.filter((user) =>
+        user.cpf?.toLowerCase().includes(filters.cpf.toLowerCase()),
+      )
+    }
+
+    if (filters.profissao) {
+      finalFiltered = finalFiltered.filter((user) =>
+        user.profissao?.toLowerCase().includes(filters.profissao.toLowerCase()),
+      )
+    }
+
+    if (filters.endereco) {
+      finalFiltered = finalFiltered.filter((user) =>
+        user.endereco?.toLowerCase().includes(filters.endereco.toLowerCase()),
+      )
+    }
+
+    setFilteredUsers(finalFiltered)
     setFilterModalVisible(false)
-  }, [users, filters])
+  }, [filters, filterUsers])
 
   const clearFilters = () => {
     setFilters({
@@ -133,46 +128,26 @@ export default function UsersScreen() {
 
   const saveUser = async () => {
     try {
-      const token = await getToken()
-      const url = editingUser
-        ? buildApiUrl(`${API_ENDPOINTS.USER}/${editingUser._id}`)
-        : buildApiUrl(API_ENDPOINTS.USER)
-
-      const method = editingUser ? 'PUT' : 'POST'
-
-      const userData = { ...formData }
-
-      if (userData.password === '') delete userData.password
-
-      if (!editingUser && !userData.password) {
+      if (!editingUser && !formData.password) {
         Alert.alert('Erro', 'Senha é obrigatória para novos usuários')
         return
       }
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      })
+      const userData = { ...formData }
+      if (userData.password === '') delete userData.password
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        Alert.alert('Erro', errorData.message || 'Falha ao salvar usuário')
-        return
+      const success = editingUser
+        ? await updateUser(editingUser._id || '', userData)
+        : await createUser(userData)
+
+      if (success) {
+        setModalVisible(false)
+        resetForm()
+        // Atualizar usuários na tela
+        await fetchUsers()
       }
-
-      Alert.alert(
-        'Sucesso',
-        `Usuário ${editingUser ? 'atualizado' : 'criado'} com sucesso`,
-      )
-      setModalVisible(false)
-      resetForm()
-      fetchUsers()
     } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
+      console.error('Erro ao salvar usuário:', error)
     }
   }
 
@@ -211,7 +186,7 @@ export default function UsersScreen() {
     setModalVisible(true)
   }
 
-  const deleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: string) => {
     Alert.alert('Confirmar', 'Tem certeza que deseja deletar este usuário?', [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -219,25 +194,13 @@ export default function UsersScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const token = await getToken()
-            const response = await fetch(
-              buildApiUrl(`${API_ENDPOINTS.USER}/${userId}`),
-              {
-                method: 'DELETE',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            )
-
-            if (response.ok) {
-              Alert.alert('Sucesso', 'Usuário deletado com sucesso')
-              fetchUsers()
-            } else {
-              Alert.alert('Erro', 'Falha ao deletar usuário')
+            const success = await deleteUserHook(userId)
+            if (success) {
+              // Atualizar usuários na tela
+              await fetchUsers()
             }
           } catch (error) {
-            Alert.alert('Erro', 'Erro de conexão')
+            console.error('Erro ao deletar usuário:', error)
           }
         },
       },
@@ -248,9 +211,14 @@ export default function UsersScreen() {
     fetchUsers()
   }, [fetchUsers])
 
+  // Atualizar usuários filtrados quando a lista de usuários mudar
+  useEffect(() => {
+    setFilteredUsers(users)
+  }, [users])
+
   const onRefresh = () => {
     setRefreshing(true)
-    fetchUsers()
+    fetchUsers().finally(() => setRefreshing(false))
   }
 
   const handleFormChange = (key: string, value: string | boolean) => {
@@ -430,7 +398,7 @@ export default function UsersScreen() {
   ]
 
   const renderUserItem = ({ item }: { item: User }) => (
-    <UserCard user={item} onEdit={openEditModal} onDelete={deleteUser} />
+    <UserCard user={item} onEdit={openEditModal} onDelete={handleDeleteUser} />
   )
 
   return (

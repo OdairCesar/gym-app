@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
-import { useAuth } from '@/context/authContext'
+import { useUsers } from '@/hooks/useUsers'
+import { useDiets } from '@/hooks/useDiets'
 import { IDiet, IMeal } from '@/interfaces/Diet'
-import { User } from '@/interfaces/User'
-import { API_ENDPOINTS, buildApiUrl } from '@/constants/api'
 import DietFormModal from '@/components/admin/DietFormModal'
 import AssignDietModal from '@/components/admin/AssignDietModal'
 import GenericFilterModal, {
@@ -19,11 +18,17 @@ interface FilterState {
 }
 
 export default function DietsScreen() {
-  const { getToken, getUser } = useAuth()
-  const [diets, setDiets] = useState<IDiet[]>([])
+  const {
+    currentUser,
+    clients,
+    fetchCurrentUser,
+    fetchClients,
+    assignDietToClient,
+  } = useUsers()
+  const { diets, fetchDiets, createDiet, updateDiet, deleteDiet, filterDiets } =
+    useDiets()
+
   const [filteredDiets, setFilteredDiets] = useState<IDiet[]>([])
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [clients, setClients] = useState<User[]>([])
   const [refreshing, setRefreshing] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [filterModalVisible, setFilterModalVisible] = useState(false)
@@ -160,96 +165,11 @@ export default function DietsScreen() {
     setEditingDiet(null)
   }
 
-  const fetchDiets = useCallback(async () => {
-    try {
-      const token = await getToken()
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.DIET), {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const json = await response.json()
-        const dietsData = json.data || json
-
-        setDiets(dietsData)
-        setFilteredDiets(dietsData)
-      } else {
-        Alert.alert('Erro', 'Falha ao carregar dietas')
-      }
-    } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
-    } finally {
-      setRefreshing(false)
-    }
-  }, [getToken])
-
-  const fetchPersonals = useCallback(async () => {
-    try {
-      const user = await getUser()
-      if (user) {
-        setCurrentUser(user)
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuário:', error)
-    }
-  }, [getUser])
-
-  const fetchClients = useCallback(async () => {
-    try {
-      const token = await getToken()
-
-      const response = await fetch(
-        buildApiUrl(`${API_ENDPOINTS.USER}?isAdmin=false&isPersonal=false`),
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-
-      if (response.ok) {
-        const json = await response.json()
-        const clientsData = json.data || json
-        setClients(clientsData)
-      }
-    } catch (error) {
-      console.error('Erro ao carregar clientes:', error)
-    }
-  }, [getToken])
-
   const applyFilters = useCallback(() => {
-    let filtered = [...diets]
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        filtered = filtered.filter((diet) => {
-          if (key === 'criador') {
-            return diet.criador === value
-          } else if (key === 'calorias') {
-            const numValue = parseFloat(value)
-            if (isNaN(numValue)) return true
-            return (diet.calorias || 0) >= numValue
-          } else {
-            const dietValue = diet[key as keyof IDiet]
-            return dietValue
-              ?.toString()
-              .toLowerCase()
-              .includes(value.toLowerCase())
-          }
-        })
-      }
-    })
-
+    const filtered = filterDiets(filters)
     setFilteredDiets(filtered)
     setFilterModalVisible(false)
-  }, [diets, filters])
+  }, [filterDiets, filters])
 
   const clearFilters = () => {
     setFilters({
@@ -262,39 +182,20 @@ export default function DietsScreen() {
 
   const saveDiet = async () => {
     try {
-      const token = await getToken()
-      const url = editingDiet
-        ? buildApiUrl(`${API_ENDPOINTS.DIET}/${editingDiet._id}`)
-        : buildApiUrl(API_ENDPOINTS.DIET)
-
-      const method = editingDiet ? 'PUT' : 'POST'
-
       const dietData = { ...formData }
+      const success = editingDiet
+        ? await updateDiet(editingDiet._id!, dietData)
+        : await createDiet(dietData)
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dietData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        Alert.alert('Erro', errorData.message || 'Falha ao salvar dieta')
-        return
+      if (success) {
+        setModalVisible(false)
+        resetForm()
+        // Aplicar filtros novamente após salvar
+        const filtered = filterDiets(filters)
+        setFilteredDiets(filtered)
       }
-
-      Alert.alert(
-        'Sucesso',
-        `Dieta ${editingDiet ? 'atualizada' : 'criada'} com sucesso`,
-      )
-      setModalVisible(false)
-      resetForm()
-      fetchDiets()
     } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
+      Alert.alert('Erro', 'Erro inesperado')
     }
   }
 
@@ -313,33 +214,18 @@ export default function DietsScreen() {
     setModalVisible(true)
   }
 
-  const deleteDiet = async (dietId: string) => {
+  const handleDeleteDiet = async (dietId: string) => {
     Alert.alert('Confirmar', 'Tem certeza que deseja deletar esta dieta?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Deletar',
         style: 'destructive',
         onPress: async () => {
-          try {
-            const token = await getToken()
-            const response = await fetch(
-              buildApiUrl(`${API_ENDPOINTS.DIET}/${dietId}`),
-              {
-                method: 'DELETE',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            )
-
-            if (response.ok) {
-              Alert.alert('Sucesso', 'Dieta deletada com sucesso')
-              fetchDiets()
-            } else {
-              Alert.alert('Erro', 'Falha ao deletar dieta')
-            }
-          } catch (error) {
-            Alert.alert('Erro', 'Erro de conexão')
+          const success = await deleteDiet(dietId)
+          if (success) {
+            // Aplicar filtros novamente após deletar
+            const filtered = filterDiets(filters)
+            setFilteredDiets(filtered)
           }
         },
       },
@@ -351,48 +237,41 @@ export default function DietsScreen() {
     setAssignModalVisible(true)
   }
 
-  const assignDietToClient = async (clientId: string) => {
-    try {
-      const token = await getToken()
-      const response = await fetch(
-        buildApiUrl(`${API_ENDPOINTS.USER}/${clientId}`),
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            diet_id: selectedDietForAssign?._id,
-          }),
-        },
+  const handleAssignDiet = async (clientId: string) => {
+    if (selectedDietForAssign?._id) {
+      const success = await assignDietToClient(
+        clientId,
+        selectedDietForAssign._id,
       )
-
-      if (response.ok) {
-        Alert.alert('Sucesso', 'Dieta atribuída ao cliente com sucesso')
+      if (success) {
         setAssignModalVisible(false)
         setSelectedDietForAssign(null)
-        fetchClients() // Atualizar lista de clientes
-      } else {
-        const errorData = await response.json()
-        Alert.alert('Erro', errorData.message || 'Falha ao atribuir dieta')
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
     }
   }
 
   useEffect(() => {
     fetchDiets()
-    fetchPersonals()
+    fetchCurrentUser()
     fetchClients()
-  }, [fetchDiets, fetchPersonals, fetchClients])
+  }, [fetchDiets, fetchCurrentUser, fetchClients])
 
-  const onRefresh = () => {
+  useEffect(() => {
+    setFilteredDiets(diets)
+    // Reaplica os filtros após carregar as dietas
+    if (filters.nome || filters.criador || filters.calorias) {
+      const filtered = filterDiets(filters)
+      setFilteredDiets(filtered)
+    }
+  }, [diets, filterDiets, filters])
+
+  const onRefresh = async () => {
     setRefreshing(true)
-    fetchDiets()
-    fetchPersonals()
-    fetchClients()
+    try {
+      await Promise.all([fetchDiets(), fetchCurrentUser(), fetchClients()])
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   const dietFilterFields: FilterField[] = [
@@ -448,7 +327,7 @@ export default function DietsScreen() {
       diet={item}
       personals={currentUser ? [currentUser] : []}
       onEdit={openEditModal}
-      onDelete={deleteDiet}
+      onDelete={handleDeleteDiet}
       onAssignToClient={openAssignModal}
     />
   )
@@ -500,7 +379,7 @@ export default function DietsScreen() {
           setAssignModalVisible(false)
           setSelectedDietForAssign(null)
         }}
-        onAssign={assignDietToClient}
+        onAssign={handleAssignDiet}
       />
 
       <GenericFilterModal

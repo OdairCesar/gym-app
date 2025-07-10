@@ -1,76 +1,40 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   View,
   Text,
-  FlatList,
   ActivityIndicator,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  FlatList,
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { MaterialIcons } from '@expo/vector-icons'
 
-import { useAuth } from '@/context/authContext'
+import { useDiets } from '@/hooks/useDiets'
 import { IDiet, IMeal } from '@/interfaces/Diet'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 import { MealCard } from '@/components/MealCard'
 
 export default function DietScreen() {
+  const { fetchUserDiet, loading } = useDiets()
   const [diet, setDiet] = useState<IDiet | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
-  const { getToken } = useAuth()
 
-  const fetchDiet = useCallback(async () => {
-    const token = await getToken()
-
+  const loadUserDiet = useCallback(async () => {
     try {
-      setLoading(true)
       setError(null)
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.DIET_ME), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      const data = await response.json()
-
-      if (!data.status) {
-        setError('Erro ao carregar a dieta.')
-        return
-      }
-
-      if (data.status === 'error') {
-        setError(data.message || 'Erro ao carregar a dieta.')
-        return
-      }
-
-      if (data.status === 'success') {
-        setDiet(data.data)
-      }
+      const result = await fetchUserDiet()
+      setDiet(result)
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('Erro desconhecido ao carregar a dieta.')
-      }
-    } finally {
-      setLoading(false)
+      console.error('Erro ao carregar dieta:', err)
+      setError('Erro ao carregar dieta')
     }
-  }, [getToken])
-
-  useEffect(() => {
-    fetchDiet()
-  }, [fetchDiet])
+  }, [fetchUserDiet])
 
   useFocusEffect(
     useCallback(() => {
-      fetchDiet()
-    }, [fetchDiet]),
+      loadUserDiet()
+    }, [loadUserDiet]),
   )
 
   if (loading) {
@@ -87,7 +51,7 @@ export default function DietScreen() {
       <View style={styles.centered}>
         <MaterialIcons name="restaurant" size={48} color="#d9534f" />
         <Text style={styles.errorText}>⚠️ {error}</Text>
-        <TouchableOpacity onPress={fetchDiet} style={styles.retryButton}>
+        <TouchableOpacity onPress={loadUserDiet} style={styles.retryButton}>
           <Text style={styles.retryText}>Tentar novamente</Text>
         </TouchableOpacity>
       </View>

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
-import { useAuth } from '@/context/authContext'
+import { useUsers } from '@/hooks/useUsers'
+import { useTrainings } from '@/hooks/useTrainings'
 import { Training } from '@/interfaces/Training'
 import { Exercise } from '@/interfaces/Exercise'
-import { User } from '@/interfaces/User'
-import { API_ENDPOINTS, buildApiUrl } from '@/constants/api'
 import TrainingFormModal from '@/components/admin/TrainingFormModal'
 import GenericFilterModal, {
   FilterField,
@@ -19,11 +18,17 @@ interface FilterState {
 }
 
 export default function TrainingsScreen() {
-  const { getToken, getUser } = useAuth()
-  const [trainings, setTrainings] = useState<Training[]>([])
+  const { clients, currentUser, fetchClients, fetchCurrentUser } = useUsers()
+  const {
+    trainings,
+    fetchTrainings,
+    createTraining,
+    updateTraining,
+    deleteTraining,
+    filterTrainings,
+  } = useTrainings()
+
   const [filteredTrainings, setFilteredTrainings] = useState<Training[]>([])
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [clients, setClients] = useState<User[]>([])
   const [refreshing, setRefreshing] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [filterModalVisible, setFilterModalVisible] = useState(false)
@@ -141,96 +146,11 @@ export default function TrainingsScreen() {
     setEditingTraining(null)
   }
 
-  const fetchTrainings = useCallback(async () => {
-    try {
-      const token = await getToken()
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.TRAINING), {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const json = await response.json()
-        const trainingsData = json.data || json
-        setTrainings(trainingsData)
-        setFilteredTrainings(trainingsData)
-      } else {
-        Alert.alert('Erro', 'Falha ao carregar treinos')
-      }
-    } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
-    } finally {
-      setRefreshing(false)
-    }
-  }, [getToken])
-
-  const fetchPersonals = useCallback(async () => {
-    try {
-      const user = await getUser()
-      if (user) {
-        setCurrentUser(user)
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuário:', error)
-    }
-  }, [getUser])
-
-  const fetchClients = useCallback(async () => {
-    try {
-      const token = await getToken()
-
-      const response = await fetch(
-        buildApiUrl(`${API_ENDPOINTS.USER}?isAdmin=false&isPersonal=false`),
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-
-      if (response.ok) {
-        const json = await response.json()
-        const clientsData = json.data || json
-        setClients(clientsData)
-      }
-    } catch (error) {
-      console.error('Erro ao carregar clientes:', error)
-    }
-  }, [getToken])
-
   const applyFilters = useCallback(() => {
-    let filtered = [...trainings]
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        filtered = filtered.filter((training) => {
-          if (key === 'treinador') {
-            // Filtrar por ID do personal
-            return training.treinador === value
-          } else if (key === 'user') {
-            // Filtrar por ID do cliente
-            return training.user === value
-          } else {
-            // Filtros normais (nome do treino)
-            const trainingValue = training[key as keyof Training]
-            return trainingValue
-              ?.toString()
-              .toLowerCase()
-              .includes(value.toLowerCase())
-          }
-        })
-      }
-    })
-
+    const filtered = filterTrainings(filters)
     setFilteredTrainings(filtered)
     setFilterModalVisible(false)
-  }, [trainings, filters])
+  }, [filterTrainings, filters])
 
   const clearFilters = () => {
     setFilters({
@@ -243,39 +163,20 @@ export default function TrainingsScreen() {
 
   const saveTraining = async () => {
     try {
-      const token = await getToken()
-      const url = editingTraining
-        ? buildApiUrl(`${API_ENDPOINTS.TRAINING}/${editingTraining._id}`)
-        : buildApiUrl(API_ENDPOINTS.TRAINING)
-
-      const method = editingTraining ? 'PUT' : 'POST'
-
       const trainingData = { ...formData }
+      const success = editingTraining
+        ? await updateTraining(editingTraining._id!, trainingData)
+        : await createTraining(trainingData)
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(trainingData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        Alert.alert('Erro', errorData.message || 'Falha ao salvar treino')
-        return
+      if (success) {
+        setModalVisible(false)
+        resetForm()
+        // Aplicar filtros novamente após salvar
+        const filtered = filterTrainings(filters)
+        setFilteredTrainings(filtered)
       }
-
-      Alert.alert(
-        'Sucesso',
-        `Treino ${editingTraining ? 'atualizado' : 'criado'} com sucesso`,
-      )
-      setModalVisible(false)
-      resetForm()
-      fetchTrainings()
     } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
+      Alert.alert('Erro', 'Erro inesperado')
     }
   }
 
@@ -290,33 +191,18 @@ export default function TrainingsScreen() {
     setModalVisible(true)
   }
 
-  const deleteTraining = async (trainingId: string) => {
+  const handleDeleteTraining = async (trainingId: string) => {
     Alert.alert('Confirmar', 'Tem certeza que deseja deletar este treino?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Deletar',
         style: 'destructive',
         onPress: async () => {
-          try {
-            const token = await getToken()
-            const response = await fetch(
-              buildApiUrl(`${API_ENDPOINTS.TRAINING}/${trainingId}`),
-              {
-                method: 'DELETE',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            )
-
-            if (response.ok) {
-              Alert.alert('Sucesso', 'Treino deletado com sucesso')
-              fetchTrainings()
-            } else {
-              Alert.alert('Erro', 'Falha ao deletar treino')
-            }
-          } catch (error) {
-            Alert.alert('Erro', 'Erro de conexão')
+          const success = await deleteTraining(trainingId)
+          if (success) {
+            // Aplicar filtros novamente após deletar
+            const filtered = filterTrainings(filters)
+            setFilteredTrainings(filtered)
           }
         },
       },
@@ -325,15 +211,26 @@ export default function TrainingsScreen() {
 
   useEffect(() => {
     fetchTrainings()
-    fetchPersonals()
+    fetchCurrentUser()
     fetchClients()
-  }, [fetchTrainings, fetchPersonals, fetchClients])
+  }, [fetchTrainings, fetchCurrentUser, fetchClients])
 
-  const onRefresh = () => {
+  useEffect(() => {
+    setFilteredTrainings(trainings)
+    // Reaplica os filtros após carregar os treinamentos
+    if (filters.nome || filters.treinador || filters.user) {
+      const filtered = filterTrainings(filters)
+      setFilteredTrainings(filtered)
+    }
+  }, [trainings, filterTrainings, filters])
+
+  const onRefresh = async () => {
     setRefreshing(true)
-    fetchTrainings()
-    fetchPersonals()
-    fetchClients()
+    try {
+      await Promise.all([fetchTrainings(), fetchCurrentUser(), fetchClients()])
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   const trainingFilterFields: FilterField[] = [
@@ -394,7 +291,7 @@ export default function TrainingsScreen() {
       personals={currentUser ? [currentUser] : []}
       clients={clients}
       onEdit={openEditModal}
-      onDelete={deleteTraining}
+      onDelete={handleDeleteTraining}
     />
   )
 

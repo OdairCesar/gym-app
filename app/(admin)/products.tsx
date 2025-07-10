@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
-import { useAuth } from '@/context/authContext'
+import { useProducts } from '@/hooks/useProducts'
 import { Product } from '@/interfaces/Product'
-import { API_ENDPOINTS, buildApiUrl } from '@/constants/api'
 import ProductCard from '@/components/admin/ProductCard'
 import GenericFormModal, {
   FormField,
@@ -21,8 +20,15 @@ interface FilterState {
 }
 
 export default function ProductsScreen() {
-  const { getToken } = useAuth()
-  const [products, setProducts] = useState<Product[]>([])
+  const {
+    products,
+    fetchProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct: deleteProductHook,
+    filterProducts,
+  } = useProducts()
+
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [refreshing, setRefreshing] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
@@ -47,62 +53,34 @@ export default function ProductsScreen() {
     ativo: '',
   })
 
-  const fetchProducts = useCallback(async () => {
-    try {
-      const token = await getToken()
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.PRODUCT), {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const json = await response.json()
-        const productsData = json.data || json
-        setProducts(productsData)
-        setFilteredProducts(productsData)
-      } else {
-        Alert.alert('Erro', 'Falha ao carregar produtos')
-      }
-    } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
-    } finally {
-      setRefreshing(false)
-    }
-  }, [getToken])
-
   const applyFilters = useCallback(() => {
-    let filtered = [...products]
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        filtered = filtered.filter((product) => {
-          const productValue = product[key as keyof Product]
-
-          if (key === 'ativo') {
-            return productValue?.toString() === value
-          }
-
-          if (key === 'preco' || key === 'estoque') {
-            const numValue = parseFloat(value)
-            if (isNaN(numValue)) return true
-            return (productValue as number) >= numValue
-          }
-
-          return productValue
-            ?.toString()
-            .toLowerCase()
-            .includes(value.toLowerCase())
-        })
-      }
+    const filtered = filterProducts({
+      nome: filters.nome,
+      categoria: filters.categoria,
+      preco: filters.preco ? { min: parseFloat(filters.preco) } : undefined,
     })
 
-    setFilteredProducts(filtered)
+    // Aplicar filtros adicionais manualmente para estoque e ativo
+    let finalFiltered = [...filtered]
+
+    if (filters.estoque) {
+      const minStock = parseFloat(filters.estoque)
+      if (!isNaN(minStock)) {
+        finalFiltered = finalFiltered.filter(
+          (product) => product.estoque >= minStock,
+        )
+      }
+    }
+
+    if (filters.ativo) {
+      finalFiltered = finalFiltered.filter(
+        (product) => product.ativo?.toString() === filters.ativo,
+      )
+    }
+
+    setFilteredProducts(finalFiltered)
     setFilterModalVisible(false)
-  }, [products, filters])
+  }, [filters, filterProducts])
 
   const clearFilters = () => {
     setFilters({
@@ -144,39 +122,18 @@ export default function ProductsScreen() {
 
   const saveProduct = async () => {
     try {
-      const token = await getToken()
-      const url = editingProduct
-        ? buildApiUrl(`${API_ENDPOINTS.PRODUCT}/${editingProduct._id}`)
-        : buildApiUrl(API_ENDPOINTS.PRODUCT)
+      const success = editingProduct
+        ? await updateProduct(editingProduct._id, formData)
+        : await createProduct(formData)
 
-      const method = editingProduct ? 'PUT' : 'POST'
-
-      const productData = { ...formData }
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        Alert.alert('Erro', errorData.message || 'Falha ao salvar produto')
-        return
+      if (success) {
+        setModalVisible(false)
+        resetForm()
+        // Atualizar produtos na tela
+        await fetchProducts()
       }
-
-      Alert.alert(
-        'Sucesso',
-        `Produto ${editingProduct ? 'atualizado' : 'criado'} com sucesso`,
-      )
-      setModalVisible(false)
-      resetForm()
-      fetchProducts()
     } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão')
+      console.error('Erro ao salvar produto:', error)
     }
   }
 
@@ -194,7 +151,7 @@ export default function ProductsScreen() {
     setModalVisible(true)
   }
 
-  const deleteProduct = async (productId: string) => {
+  const handleDeleteProduct = async (productId: string) => {
     Alert.alert('Confirmar', 'Tem certeza que deseja deletar este produto?', [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -202,25 +159,13 @@ export default function ProductsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const token = await getToken()
-            const response = await fetch(
-              buildApiUrl(`${API_ENDPOINTS.PRODUCT}/${productId}`),
-              {
-                method: 'DELETE',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            )
-
-            if (response.ok) {
-              Alert.alert('Sucesso', 'Produto deletado com sucesso')
-              fetchProducts()
-            } else {
-              Alert.alert('Erro', 'Falha ao deletar produto')
+            const success = await deleteProductHook(productId)
+            if (success) {
+              // Atualizar produtos na tela
+              await fetchProducts()
             }
           } catch (error) {
-            Alert.alert('Erro', 'Erro de conexão')
+            console.error('Erro ao deletar produto:', error)
           }
         },
       },
@@ -231,9 +176,14 @@ export default function ProductsScreen() {
     fetchProducts()
   }, [fetchProducts])
 
+  // Atualizar produtos filtrados quando a lista de produtos mudar
+  useEffect(() => {
+    setFilteredProducts(products)
+  }, [products])
+
   const onRefresh = () => {
     setRefreshing(true)
-    fetchProducts()
+    fetchProducts().finally(() => setRefreshing(false))
   }
 
   const productFilterFields: FilterField[] = [
@@ -365,7 +315,7 @@ export default function ProductsScreen() {
     <ProductCard
       product={item}
       onEdit={openEditModal}
-      onDelete={deleteProduct}
+      onDelete={handleDeleteProduct}
     />
   )
 

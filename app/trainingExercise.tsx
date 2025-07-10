@@ -18,12 +18,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import * as Notifications from 'expo-notifications'
 
-import { useAuth } from '@/context/authContext'
+import { useTrainings } from '@/hooks/useTrainings'
 import { ExerciseItem } from '@/components/ExerciseItem'
 import { useTrainingTimer } from '@/hooks/useTrainingTimer'
 import { STORAGE_COMPLETED, STORAGE_SKIPPED } from '@/constants/storageKeys'
 import '@/utils/notificationHandler'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 import { Training } from '@/interfaces/Training'
 
@@ -31,7 +30,7 @@ type Filter = 'all' | 'completed' | 'skipped'
 
 export default function TrainingExerciseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const { getToken } = useAuth()
+  const { getTrainingById } = useTrainings()
   const router = useRouter()
   const navigation = useNavigation()
 
@@ -42,8 +41,7 @@ export default function TrainingExerciseScreen() {
   const [skippedExercises, setSkippedExercises] = useState<number[]>([])
   const [filter, setFilter] = useState<Filter>('all')
 
-  const fetchTraining = async () => {
-    const token = await getToken()
+  const fetchTraining = useCallback(async () => {
     if (!id) {
       setLoading(false)
       router.replace('/(client)/training')
@@ -51,25 +49,17 @@ export default function TrainingExerciseScreen() {
     }
 
     try {
-      const response = await fetch(
-        buildApiUrl(API_ENDPOINTS.TRAINING_BY_ID(id)),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
+      setLoading(true)
+      setError(null)
 
-      const data = await response.json()
+      // Busca o treino pelo ID usando o hook
+      const foundTraining = getTrainingById(id)
 
-      if (!data.status || data.status === 'error') {
-        setError(data.message || 'Erro ao carregar os treinos.')
-
-        return
+      if (foundTraining) {
+        setTraining(foundTraining)
+      } else {
+        setError('Treino não encontrado.')
       }
-
-      if (data.status === 'success') setTraining(data.data)
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message)
@@ -80,26 +70,27 @@ export default function TrainingExerciseScreen() {
       setLoading(false)
     }
 
+    // Carrega estado dos exercícios do AsyncStorage
     const completedRaw = await AsyncStorage.getItem(STORAGE_COMPLETED)
     const skippedRaw = await AsyncStorage.getItem(STORAGE_SKIPPED)
 
     setCompletedExercises(completedRaw ? JSON.parse(completedRaw) : [])
     setSkippedExercises(skippedRaw ? JSON.parse(skippedRaw) : [])
-  }
+  }, [id, getTrainingById, router])
 
   useEffect(() => {
     if (id) fetchTraining()
-  }, [id])
+  }, [id, fetchTraining])
 
   useFocusEffect(
     useCallback(() => {
       fetchTraining()
-    }, []),
+    }, [fetchTraining]),
   )
 
   useLayoutEffect(() => {
     if (training?.nome) navigation.setOptions({ title: training.nome })
-  }, [training])
+  }, [training, navigation])
 
   const saveCompleted = async (list: number[]) => {
     setCompletedExercises(list)

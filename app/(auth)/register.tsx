@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import {
   TextInput,
-  Alert,
   View,
   StyleSheet,
   Text,
@@ -10,15 +9,14 @@ import {
   ScrollView,
   KeyboardAvoidingView,
 } from 'react-native'
-import { useRouter, Link } from 'expo-router'
+import { Link } from 'expo-router'
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker'
 import { MaskedTextInput } from 'react-native-mask-text'
 
-import { useAuth } from '@/context/authContext'
+import { useAuth } from '@/hooks/useAuth'
 import { formatDate } from '@/utils/formatDate'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -34,32 +32,24 @@ export default function Register() {
     isAdmin: false,
     isActive: true,
   })
-  const router = useRouter()
   const [showDatePicker, setShowDatePicker] = useState(false)
-  const { login } = useAuth()
+  const { register } = useAuth()
 
-  const register = async () => {
-    try {
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.REGISTER), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-
-      const data = await response.json()
-
-      if (!data.status || data.status === 'error') {
-        Alert.alert('Erro', data.error || data.message || 'Erro ao registrar')
-        return
-      }
-
-      if (data.status === 'success') {
-        await login(data.data.token, data.data.user)
-        router.push('/(client)/training')
-      }
-    } catch (err) {
-      Alert.alert('Erro', 'Erro de rede')
+  const handleRegister = async () => {
+    if (!form.nome || !form.email || !form.password) {
+      return
     }
+
+    // Converter dataNascimento para Date se existir
+    const userData = {
+      ...form,
+      dataNascimento: form.dataNascimento
+        ? parseDate(form.dataNascimento)
+        : undefined,
+      sexo: form.sexo as 'M' | 'F' | 'O' | undefined,
+    }
+
+    await register(userData)
   }
 
   const selectSexo = (value: string) => setForm({ ...form, sexo: value })
@@ -241,7 +231,7 @@ export default function Register() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={register}
+          onPress={handleRegister}
           accessibilityRole="button"
         >
           <Text style={styles.buttonText}>Registrar</Text>

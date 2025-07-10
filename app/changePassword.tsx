@@ -7,12 +7,11 @@ import {
   ScrollView,
 } from 'react-native'
 import { useState } from 'react'
-import { useAuth } from '@/context/authContext'
+import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'expo-router'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function ChangePasswordScreen() {
-  const { getToken } = useAuth()
+  const { changePassword } = useAuth()
   const router = useRouter()
 
   const [form, setForm] = useState({
@@ -27,30 +26,13 @@ export default function ChangePasswordScreen() {
       return
     }
 
-    try {
-      const token = await getToken()
-      const res = await fetch(buildApiUrl(API_ENDPOINTS.CHANGE_PASSWORD), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          currentPassword: form.current,
-          newPassword: form.new,
-        }),
-      })
+    const success = await changePassword({
+      currentPassword: form.current,
+      newPassword: form.new,
+    })
 
-      const data = await res.json()
-
-      if (data.status === 'success') {
-        Alert.alert('Sucesso', 'Senha atualizada com sucesso!')
-        router.back()
-      } else {
-        Alert.alert('Erro', data.message || 'Falha ao trocar senha.')
-      }
-    } catch (err) {
-      Alert.alert('Erro', 'Erro ao processar a solicitação.')
+    if (success) {
+      router.back()
     }
   }
 

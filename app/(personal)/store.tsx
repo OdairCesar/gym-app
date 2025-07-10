@@ -5,65 +5,19 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  TouchableOpacity,
   Alert,
   RefreshControl,
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { MaterialIcons } from '@expo/vector-icons'
 
-import { useAuth } from '@/context/authContext'
+import { useProducts } from '@/hooks/useProducts'
 import { Product } from '@/interfaces/Product'
 import { ProductCard } from '@/components/ProductCard'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 
 export default function StoreScreen() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
+  const { products, loading, fetchProducts } = useProducts()
   const [refreshing, setRefreshing] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
-  const { getToken } = useAuth()
-
-  const fetchProducts = useCallback(async () => {
-    const token = await getToken()
-
-    try {
-      setLoading(true)
-      setError(null)
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.PRODUCT), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      const data = await response.json()
-
-      if (!data.status) {
-        setError('Erro ao carregar os produtos.')
-        return
-      }
-
-      if (data.status === 'error') {
-        setError(data.message || 'Erro ao carregar os produtos.')
-        return
-      }
-
-      if (data.status === 'success') {
-        setProducts(data.data || [])
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('Erro desconhecido ao carregar os produtos.')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [getToken])
 
   const onRefresh = async () => {
     setRefreshing(true)
@@ -72,8 +26,10 @@ export default function StoreScreen() {
   }
 
   const handleBuyProduct = (product: Product) => {
-    // Aqui você pode implementar a lógica de compra
-    Alert.alert('Sucesso', `${product.nome} adicionado ao carrinho!`)
+    Alert.alert('Produto Selecionado', `Você selecionou: ${product.nome}`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Comprar', onPress: () => console.log('Comprar produto') },
+    ])
   }
 
   useEffect(() => {
@@ -91,18 +47,6 @@ export default function StoreScreen() {
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#0a84ff" />
         <Text style={styles.loadingText}>Carregando produtos...</Text>
-      </View>
-    )
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <MaterialIcons name="error-outline" size={48} color="#d9534f" />
-        <Text style={styles.errorText}>⚠️ {error}</Text>
-        <TouchableOpacity onPress={fetchProducts} style={styles.retryButton}>
-          <Text style={styles.retryText}>Tentar novamente</Text>
-        </TouchableOpacity>
       </View>
     )
   }
@@ -162,25 +106,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: '#666',
-  },
-  errorText: {
-    color: '#d9534f',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 16,
-    marginTop: 12,
-  },
-  retryButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#0a84ff',
-    borderRadius: 8,
-  },
-  retryText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   emptyText: {
     fontSize: 18,

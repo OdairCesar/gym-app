@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   View,
   Text,
@@ -9,65 +9,36 @@ import {
 } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 
-import { useAuth } from '@/context/authContext'
+import { useTrainings } from '@/hooks/useTrainings'
 import { Training } from '@/interfaces/Training'
-import { buildApiUrl, API_ENDPOINTS } from '@/constants/api'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 export default function TrainingScreen() {
-  const [trainings, setTrainings] = useState<Training[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
+  const { fetchUserTraining, loading } = useTrainings()
+  const [userTrainings, setUserTrainings] = useState<Training[]>([])
   const [error, setError] = useState<string | null>(null)
-  const { getToken } = useAuth()
   const router = useRouter()
 
-  useEffect(() => {
-    fetchTrainings()
-  }, [])
-
-  const fetchTrainings = async () => {
-    const token = await getToken()
-
+  const loadUserTrainings = useCallback(async () => {
     try {
-      setLoading(true)
       setError(null)
-
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.TRAINING_ME), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      const data = await response.json()
-
-      if (!data.status) {
-        setError('Erro ao carregar os treinos.')
-        return
-      }
-
-      if (data.status === 'error') {
-        setError(data.message || 'Erro ao carregar os treinos.')
-        return
-      }
-
-      if (data.status === 'success') setTrainings(data.data)
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
+      const result = await fetchUserTraining()
+      if (result) {
+        // Se result for um array, usa diretamente, senão coloca em array
+        setUserTrainings(Array.isArray(result) ? result : [result])
       } else {
-        setError('Erro desconhecido ao carregar os treinos.')
+        setUserTrainings([])
       }
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      console.error('Erro ao carregar treinos:', err)
+      setError('Erro ao carregar treinos')
     }
-  }
+  }, [fetchUserTraining])
 
   useFocusEffect(
     useCallback(() => {
-      fetchTrainings()
-    }, []),
+      loadUserTrainings()
+    }, [loadUserTrainings]),
   )
 
   if (loading) {
@@ -84,14 +55,17 @@ export default function TrainingScreen() {
       <View style={styles.centered}>
         <MaterialCommunityIcons name="dumbbell" size={48} color="#d9534f" />
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity onPress={fetchTrainings} style={styles.retryButton}>
+        <TouchableOpacity
+          onPress={loadUserTrainings}
+          style={styles.retryButton}
+        >
           <Text style={styles.retryText}>Tentar novamente</Text>
         </TouchableOpacity>
       </View>
     )
   }
 
-  if (trainings.length === 0) {
+  if (userTrainings.length === 0) {
     return (
       <View style={styles.centered}>
         <Text>Nenhum treino encontrado.</Text>
@@ -103,7 +77,7 @@ export default function TrainingScreen() {
     <View style={styles.container}>
       <FlatList
         style={{ padding: 20 }}
-        data={trainings}
+        data={userTrainings}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <View style={styles.card}>
