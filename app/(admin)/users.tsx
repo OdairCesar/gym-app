@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
+import { View, FlatList, Alert, RefreshControl } from 'react-native'
 import { useUsers } from '@/hooks/useUsers'
 import { User } from '@/interfaces/User'
 import UserCard from '@/components/admin/UserCard'
@@ -10,6 +10,7 @@ import GenericFilterModal, {
   FilterField,
 } from '@/components/common/GenericFilterModal'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
+import { GlobalStyles, Colors } from '@/styles/globalStyles'
 
 interface FilterState {
   nome: string
@@ -147,7 +148,7 @@ export default function UsersScreen() {
         await fetchUsers()
       }
     } catch (error) {
-      console.error('Erro ao salvar usuário:', error)
+      Alert.alert('Erro', 'Erro ao salvar usuário')
     }
   }
 
@@ -200,7 +201,7 @@ export default function UsersScreen() {
               await fetchUsers()
             }
           } catch (error) {
-            console.error('Erro ao deletar usuário:', error)
+            Alert.alert('Erro', 'Erro ao deletar usuário')
           }
         },
       },
@@ -233,7 +234,7 @@ export default function UsersScreen() {
     {
       icon: 'filter',
       onPress: () => setFilterModalVisible(true),
-      color: '#007AFF',
+      color: Colors.primary,
     },
     {
       icon: 'plus',
@@ -241,7 +242,7 @@ export default function UsersScreen() {
         resetForm()
         setModalVisible(true)
       },
-      color: '#007AFF',
+      color: Colors.primary,
     },
   ]
 
@@ -332,7 +333,7 @@ export default function UsersScreen() {
     },
     {
       key: 'password',
-      label: `Senha ${editingUser ? '(deixe vazio para manter atual)' : ''}`,
+      label: editingUser ? 'Senha (deixe vazio para manter atual)' : 'Senha',
       type: 'password',
       placeholder: 'Digite a senha',
       required: !editingUser,
@@ -402,17 +403,17 @@ export default function UsersScreen() {
   )
 
   return (
-    <View style={styles.container}>
+    <View style={GlobalStyles.container}>
       <PageHeader title="Gerenciar Usuários" buttons={headerButtons} />
 
       <FlatList
         data={filteredUsers}
-        keyExtractor={(item) => item._id || ''}
+        keyExtractor={(item) => item._id || `user-${Math.random()}`}
         renderItem={renderUserItem}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={styles.list}
+        style={GlobalStyles.list}
         showsVerticalScrollIndicator={false}
       />
 
@@ -440,15 +441,3 @@ export default function UsersScreen() {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  list: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-})

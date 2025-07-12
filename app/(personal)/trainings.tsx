@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
+import { View, FlatList, Alert, RefreshControl } from 'react-native'
 import { useUsers } from '@/hooks/useUsers'
 import { useTrainings } from '@/hooks/useTrainings'
 import { Training } from '@/interfaces/Training'
 import { Exercise } from '@/interfaces/Exercise'
-import TrainingFormModal from '@/components/admin/TrainingFormModal'
+import TrainingFormModal from '@/components/common/TrainingFormModal'
 import GenericFilterModal, {
   FilterField,
 } from '@/components/common/GenericFilterModal'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
-import TrainingCard from '@/components/admin/TrainingCard'
+import TrainingCard from '@/components/common/TrainingCard'
+import { GlobalStyles, Colors } from '@/styles/globalStyles'
 
 interface FilterState {
   nome: string
@@ -273,7 +274,7 @@ export default function TrainingsScreen() {
     {
       icon: 'filter',
       onPress: () => setFilterModalVisible(true),
-      color: '#007AFF',
+      color: Colors.primary,
     },
     {
       icon: 'plus',
@@ -281,7 +282,7 @@ export default function TrainingsScreen() {
         resetForm()
         setModalVisible(true)
       },
-      color: '#007AFF',
+      color: Colors.primary,
     },
   ]
 
@@ -296,7 +297,7 @@ export default function TrainingsScreen() {
   )
 
   return (
-    <View style={styles.container}>
+    <View style={GlobalStyles.container}>
       <PageHeader title="Gerenciar Treinos" buttons={headerButtons} />
 
       <FlatList
@@ -306,7 +307,7 @@ export default function TrainingsScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={styles.list}
+        style={GlobalStyles.list}
         showsVerticalScrollIndicator={false}
       />
 
@@ -343,15 +344,3 @@ export default function TrainingsScreen() {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  list: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-})

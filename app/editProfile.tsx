@@ -1,13 +1,8 @@
-import {
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native'
+import { Text, TextInput, ScrollView, TouchableOpacity } from 'react-native'
 import { useState, useEffect } from 'react'
 import { useAuth as useAuthContext } from '@/context/authContext'
 import { useAuth } from '@/hooks/useAuth'
+import { GlobalStyles } from '@/styles/globalStyles'
 import { useRouter } from 'expo-router'
 
 export default function EditProfileScreen() {
@@ -63,87 +58,56 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={GlobalStyles.containerWithPadding}>
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Nome"
         value={form.nome}
         onChangeText={(v) => setForm({ ...form, nome: v })}
       />
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Telefone"
         value={form.telefone}
         onChangeText={(v) => setForm({ ...form, telefone: v })}
       />
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Data de Nascimento"
         value={form.dataNascimento}
         onChangeText={(v) => setForm({ ...form, dataNascimento: v })}
       />
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="CPF"
         value={form.cpf}
         onChangeText={(v) => setForm({ ...form, cpf: v })}
       />
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Sexo"
         value={form.sexo}
         onChangeText={(v) => setForm({ ...form, sexo: v })}
       />
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Profissão"
         value={form.profissao}
         onChangeText={(v) => setForm({ ...form, profissao: v })}
       />
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Endereço"
         value={form.endereco}
         onChangeText={(v) => setForm({ ...form, endereco: v })}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleUpdate}>
-        <Text style={styles.buttonText}>Salvar Alterações</Text>
+      <TouchableOpacity
+        style={[GlobalStyles.button, GlobalStyles.buttonSuccess]}
+        onPress={handleUpdate}
+      >
+        <Text style={GlobalStyles.buttonText}>Salvar Alterações</Text>
       </TouchableOpacity>
     </ScrollView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: '#28a745',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 12,
-    elevation: 2,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-})

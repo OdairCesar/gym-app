@@ -8,15 +8,16 @@ import {
 import {
   View,
   Text,
-  StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  StyleSheet,
 } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useNavigation } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import * as Notifications from 'expo-notifications'
+import { GlobalStyles } from '@/styles/globalStyles'
 
 import { useTrainings } from '@/hooks/useTrainings'
 import { ExerciseItem } from '@/components/ExerciseItem'
@@ -169,7 +170,7 @@ export default function TrainingExerciseScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
+      <View style={GlobalStyles.center}>
         <ActivityIndicator size="large" />
       </View>
     )
@@ -177,7 +178,7 @@ export default function TrainingExerciseScreen() {
 
   if (error) {
     return (
-      <View style={styles.centered}>
+      <View style={GlobalStyles.center}>
         <Text>Erro: {error}</Text>
       </View>
     )
@@ -185,7 +186,7 @@ export default function TrainingExerciseScreen() {
 
   if (!training) {
     return (
-      <View style={styles.centered}>
+      <View style={GlobalStyles.center}>
         <Text>Treino não encontrado.</Text>
       </View>
     )
@@ -226,7 +227,7 @@ export default function TrainingExerciseScreen() {
         </View>
 
         {exercisesToShow.length === 0 && (
-          <View style={styles.centered}>
+          <View style={GlobalStyles.center}>
             <Text style={{ fontSize: 18, color: 'green' }}>
               {filter === 'completed'
                 ? 'Não há exercícios concluídos!'
@@ -257,11 +258,6 @@ export default function TrainingExerciseScreen() {
 }
 
 const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   timerText: {
     fontSize: 18,
     fontWeight: 'bold',

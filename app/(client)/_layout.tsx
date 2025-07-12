@@ -4,6 +4,7 @@ import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { AuthProvider, useAuth } from '@/context/authContext'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Colors } from '@/styles/globalStyles'
 
 function TabBarIcon(props: {
   name: React.ComponentProps<
@@ -61,7 +62,7 @@ export default function ClientLayoutNav() {
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <Tabs
           screenOptions={{
-            tabBarActiveTintColor: '#007AFF',
+            tabBarActiveTintColor: Colors.primary,
             tabBarInactiveTintColor: '#8E8E93',
             tabBarStyle: {
               backgroundColor: '#F2F2F7',

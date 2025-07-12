@@ -1,7 +1,8 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { Product } from '@/interfaces/Product'
+import { Colors } from '@/styles/globalStyles'
 
 interface ProductCardProps {
   product: Product
@@ -25,7 +26,11 @@ export default function ProductCard({
           />
         ) : (
           <View style={styles.placeholderImage}>
-            <MaterialIcons name="shopping-bag" size={40} color="#C7C7CC" />
+            <MaterialIcons
+              name="shopping-bag"
+              size={40}
+              color={Colors.borderLight}
+            />
           </View>
         )}
       </View>
@@ -37,7 +42,11 @@ export default function ProductCard({
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: product.ativo ? '#34C759' : '#FF3B30' },
+                {
+                  backgroundColor: product.ativo
+                    ? Colors.success
+                    : Colors.danger,
+                },
               ]}
             >
               <Text style={styles.statusText}>
@@ -68,10 +77,10 @@ export default function ProductCard({
                 {
                   color:
                     product.estoque > 10
-                      ? '#34C759'
+                      ? Colors.success
                       : product.estoque > 0
-                        ? '#FF9500'
-                        : '#FF3B30',
+                        ? Colors.warning
+                        : Colors.danger,
                 },
               ]}
             >
@@ -85,7 +94,7 @@ export default function ProductCard({
             style={[styles.actionButton, styles.editButton]}
             onPress={() => onEdit(product)}
           >
-            <MaterialIcons name="edit" size={16} color="#007AFF" />
+            <MaterialIcons name="edit" size={16} color={Colors.primary} />
             <Text style={styles.editButtonText}>Editar</Text>
           </TouchableOpacity>
 
@@ -93,7 +102,7 @@ export default function ProductCard({
             style={[styles.actionButton, styles.deleteButton]}
             onPress={() => onDelete(product._id)}
           >
-            <MaterialIcons name="delete" size={16} color="#FF3B30" />
+            <MaterialIcons name="delete" size={16} color={Colors.danger} />
             <Text style={styles.deleteButtonText}>Excluir</Text>
           </TouchableOpacity>
         </View>
@@ -105,11 +114,11 @@ export default function ProductCard({
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.backgroundSecondary,
     borderRadius: 12,
     marginVertical: 4,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
       height: 1,
@@ -130,7 +139,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -146,7 +155,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: Colors.text,
     flex: 1,
     marginRight: 8,
   },
@@ -161,11 +170,11 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: Colors.textLight,
   },
   description: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: Colors.textSecondary,
     marginBottom: 12,
     lineHeight: 20,
   },
@@ -179,17 +188,17 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: Colors.textSecondary,
     fontWeight: '500',
   },
   detailValue: {
     fontSize: 14,
-    color: '#000000',
+    color: Colors.text,
     fontWeight: '500',
   },
   price: {
     fontSize: 14,
-    color: '#34C759',
+    color: Colors.success,
     fontWeight: '600',
   },
   stock: {
@@ -209,21 +218,21 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   editButton: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: Colors.primaryButtonLight,
   },
   deleteButton: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: Colors.dangerLight,
   },
   editButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#007AFF',
+    color: Colors.primary,
     marginLeft: 4,
   },
   deleteButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#FF3B30',
+    color: Colors.danger,
     marginLeft: 4,
   },
 })

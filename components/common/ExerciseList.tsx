@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Exercise } from '@/interfaces/Exercise'
+import { Colors } from '@/styles/globalStyles'
 
 interface ExerciseListProps {
   exercises: Exercise[]
@@ -21,7 +22,11 @@ export default function ExerciseList({
       <View style={styles.header}>
         <Text style={styles.title}>Exercícios ({exercises.length})</Text>
         <TouchableOpacity style={styles.addButton} onPress={onAdd}>
-          <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
+          <MaterialCommunityIcons
+            name="plus"
+            size={20}
+            color={Colors.textLight}
+          />
           <Text style={styles.addButtonText}>Adicionar</Text>
         </TouchableOpacity>
       </View>
@@ -50,7 +55,7 @@ export default function ExerciseList({
                   <MaterialCommunityIcons
                     name="pencil"
                     size={16}
-                    color="#007AFF"
+                    color={Colors.primary}
                   />
                 </TouchableOpacity>
               )}
@@ -90,14 +95,14 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
     gap: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: Colors.textLight,
     fontSize: 14,
     fontWeight: '600',
   },

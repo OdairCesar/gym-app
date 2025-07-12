@@ -6,10 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Picker } from '@react-native-picker/picker'
+import { GlobalStyles, Colors } from '@/styles/globalStyles'
 
 export interface FilterField {
   key: string
@@ -43,28 +43,29 @@ export default function GenericFilterModal({
     switch (field.type) {
       case 'text':
         return (
-          <View key={field.key} style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>{field.label}</Text>
+          <View key={field.key} style={GlobalStyles.inputGroup}>
+            <Text style={GlobalStyles.inputLabel}>{field.label}</Text>
             <TextInput
-              style={styles.input}
+              style={GlobalStyles.input}
               value={field.value}
               onChangeText={(text) => onFilterChange(field.key, text)}
               placeholder={field.placeholder}
+              placeholderTextColor={Colors.textSecondary}
             />
           </View>
         )
 
       case 'select':
         return (
-          <View key={field.key} style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>{field.label}</Text>
-            <View style={styles.pickerContainer}>
+          <View key={field.key} style={GlobalStyles.inputGroup}>
+            <Text style={GlobalStyles.inputLabel}>{field.label}</Text>
+            <View style={GlobalStyles.pickerContainer}>
               <Picker
                 selectedValue={field.value}
                 onValueChange={(itemValue: string) =>
                   onFilterChange(field.key, itemValue)
                 }
-                style={styles.picker}
+                style={GlobalStyles.picker}
               >
                 <Picker.Item
                   label={field.placeholder || 'Selecione...'}
@@ -93,23 +94,27 @@ export default function GenericFilterModal({
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <SafeAreaView style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
+      <SafeAreaView style={GlobalStyles.modalContainer}>
+        <View style={GlobalStyles.modalHeader}>
           <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Cancelar</Text>
+            <Text style={GlobalStyles.modalCancelButton}>Cancelar</Text>
           </TouchableOpacity>
-          <Text style={styles.modalTitle}>{title}</Text>
+          <Text style={GlobalStyles.modalTitle}>{title}</Text>
           <TouchableOpacity onPress={onApplyFilters}>
-            <Text style={styles.saveButton}>Aplicar</Text>
+            <Text style={GlobalStyles.modalSaveButton}>Aplicar</Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.formContainer}>
+        <ScrollView style={GlobalStyles.formContainer}>
           <TouchableOpacity
-            style={styles.clearFiltersButton}
+            style={[
+              GlobalStyles.button,
+              GlobalStyles.buttonError,
+              { marginVertical: 16 },
+            ]}
             onPress={onClearFilters}
           >
-            <Text style={styles.clearFiltersText}>Limpar Filtros</Text>
+            <Text style={GlobalStyles.buttonText}>Limpar Filtros</Text>
           </TouchableOpacity>
 
           {fields.map(renderField)}
@@ -118,100 +123,3 @@ export default function GenericFilterModal({
     </Modal>
   )
 }
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  cancelButton: {
-    fontSize: 16,
-    color: '#FF3B30',
-  },
-  saveButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  formContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  inputGroup: {
-    marginVertical: 12,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  clearFiltersButton: {
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    marginVertical: 12,
-  },
-  clearFiltersText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  pickerContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  picker: {
-    height: 50,
-  },
-  filterPickerContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  filterPickerOption: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  filterPickerOptionSelected: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  filterPickerText: {
-    fontSize: 14,
-    color: '#000000',
-  },
-  filterPickerTextSelected: {
-    color: '#FFFFFF',
-  },
-})

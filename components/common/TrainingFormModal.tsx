@@ -13,6 +13,7 @@ import { Picker } from '@react-native-picker/picker'
 import { Training } from '@/interfaces/Training'
 import { Exercise } from '@/interfaces/Exercise'
 import { User } from '@/interfaces/User'
+import { Colors } from '@/styles/globalStyles'
 import ExerciseList from './ExerciseList'
 
 interface TrainingFormModalProps {
@@ -260,11 +261,11 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#FF3B30',
+    color: Colors.error,
   },
   saveButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: Colors.primary,
     fontWeight: '600',
   },
   formContainer: {

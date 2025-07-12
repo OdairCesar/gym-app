@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { IMeal } from '@/interfaces/Diet'
+import { Colors } from '@/styles/globalStyles'
 
 interface MealListProps {
   meals: IMeal[]
@@ -53,7 +54,7 @@ export default function MealList({ meals, onAdd, onRemove }: MealListProps) {
       <View style={styles.header}>
         <Text style={styles.title}>Refeições ({meals.length})</Text>
         <TouchableOpacity style={styles.addButton} onPress={onAdd}>
-          <MaterialIcons name="add" size={20} color="#007AFF" />
+          <MaterialIcons name="add" size={20} color={Colors.textLight} />
           <Text style={styles.addButtonText}>Adicionar</Text>
         </TouchableOpacity>
       </View>
@@ -97,14 +98,14 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F8FF',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
   addButtonText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: Colors.textLight,
     fontWeight: '500',
     marginLeft: 4,
   },
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: Colors.primary,
   },
   mealContent: {
     flex: 1,
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
   foodsTitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#007AFF',
+    color: Colors.primary,
     marginBottom: 2,
   },
   foodsList: {

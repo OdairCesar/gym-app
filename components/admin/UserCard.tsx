@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { User } from '@/interfaces/User'
+import { Colors } from '@/styles/globalStyles'
 
 interface UserCardProps {
   user: User
@@ -32,13 +33,21 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
           style={styles.actionButton}
           onPress={() => onEdit(user)}
         >
-          <MaterialCommunityIcons name="pencil" size={20} color="#007AFF" />
+          <MaterialCommunityIcons
+            name="pencil"
+            size={20}
+            color={Colors.primary}
+          />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onDelete(user._id!)}
         >
-          <MaterialCommunityIcons name="delete" size={20} color="#FF3B30" />
+          <MaterialCommunityIcons
+            name="delete"
+            size={20}
+            color={Colors.danger}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -47,14 +56,14 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
 
 const styles = StyleSheet.create({
   userCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     marginVertical: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -66,12 +75,12 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: Colors.text,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: Colors.textSecondary,
     marginBottom: 8,
   },
   userTags: {
@@ -86,16 +95,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   adminTag: {
-    backgroundColor: '#FF3B30',
-    color: '#FFFFFF',
+    backgroundColor: Colors.danger,
+    color: Colors.textLight,
   },
   personalTag: {
-    backgroundColor: '#007AFF',
-    color: '#FFFFFF',
+    backgroundColor: Colors.primary,
+    color: Colors.textLight,
   },
   inactiveTag: {
-    backgroundColor: '#8E8E93',
-    color: '#FFFFFF',
+    backgroundColor: Colors.textSecondary,
+    color: Colors.textLight,
   },
   userActions: {
     flexDirection: 'row',

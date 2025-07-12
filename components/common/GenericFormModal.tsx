@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Picker } from '@react-native-picker/picker'
+import { GlobalStyles, Colors } from '@/styles/globalStyles'
 
 export interface FormField {
   key: string
@@ -113,11 +114,11 @@ export default function GenericFormModal({
             <Text style={styles.inputLabel}>
               {field.label} {field.required && '*'}
             </Text>
-            <View style={styles.radioGroup}>
+            <View style={GlobalStyles.radioGroup}>
               {field.options?.map((option) => (
                 <TouchableOpacity
                   key={option.value.toString()}
-                  style={styles.radioOption}
+                  style={GlobalStyles.radioOption}
                   onPress={() => onFieldChange(field.key, option.value)}
                 >
                   <MaterialCommunityIcons
@@ -127,9 +128,9 @@ export default function GenericFormModal({
                         : 'radiobox-blank'
                     }
                     size={20}
-                    color="#007AFF"
+                    color={Colors.primary}
                   />
-                  <Text style={styles.radioLabel}>{option.label}</Text>
+                  <Text style={GlobalStyles.radioLabel}>{option.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -138,9 +139,9 @@ export default function GenericFormModal({
 
       case 'checkbox':
         return (
-          <View key={field.key} style={styles.checkboxGroup}>
+          <View key={field.key} style={GlobalStyles.checkboxGroup}>
             <TouchableOpacity
-              style={styles.checkboxOption}
+              style={GlobalStyles.checkboxOption}
               onPress={() => onFieldChange(field.key, !field.value)}
             >
               <MaterialCommunityIcons
@@ -148,9 +149,9 @@ export default function GenericFormModal({
                   field.value ? 'checkbox-marked' : 'checkbox-blank-outline'
                 }
                 size={20}
-                color="#007AFF"
+                color={Colors.primary}
               />
-              <Text style={styles.checkboxLabel}>{field.label}</Text>
+              <Text style={GlobalStyles.checkboxLabel}>{field.label}</Text>
             </TouchableOpacity>
           </View>
         )
@@ -166,18 +167,18 @@ export default function GenericFormModal({
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <SafeAreaView style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
+      {' '}
+      <SafeAreaView style={GlobalStyles.modalContainer}>
+        <View style={GlobalStyles.modalHeader}>
           <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Cancelar</Text>
+            <Text style={GlobalStyles.modalCancelButton}>Cancelar</Text>
           </TouchableOpacity>
-          <Text style={styles.modalTitle}>{title}</Text>
+          <Text style={GlobalStyles.modalTitle}>{title}</Text>
           <TouchableOpacity onPress={onSave}>
-            <Text style={styles.saveButton}>Salvar</Text>
+            <Text style={GlobalStyles.modalSaveButton}>Salvar</Text>
           </TouchableOpacity>
         </View>
-
-        <ScrollView style={styles.formContainer}>
+        <ScrollView style={GlobalStyles.formContainer}>
           {fields.map(renderField)}
         </ScrollView>
       </SafeAreaView>
@@ -207,11 +208,11 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#FF3B30',
+    color: Colors.error,
   },
   saveButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: Colors.primary,
     fontWeight: '600',
   },
   formContainer: {
@@ -235,6 +236,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
+  clearFiltersButton: {
+    backgroundColor: Colors.error,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  clearFiltersText: {
+    color: Colors.textLight,
+    fontSize: 16,
+    fontWeight: '600',
+  },
   pickerContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
@@ -244,30 +257,28 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
   },
-  radioGroup: {
+  filterPickerContainer: {
     flexDirection: 'row',
-    gap: 16,
-  },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 8,
   },
-  radioLabel: {
-    fontSize: 16,
+  filterPickerOption: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  filterPickerOptionSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterPickerText: {
+    fontSize: 14,
     color: '#000000',
   },
-  checkboxGroup: {
-    marginVertical: 12,
-    gap: 12,
-  },
-  checkboxOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  checkboxLabel: {
-    fontSize: 16,
-    color: '#000000',
+  filterPickerTextSelected: {
+    color: Colors.textLight,
   },
 })

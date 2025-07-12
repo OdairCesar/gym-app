@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
-import { useUsers } from '@/hooks/useUsers'
+import { View, FlatList, Alert, RefreshControl } from 'react-native'
 import { useDiets } from '@/hooks/useDiets'
+import { useUsers } from '@/hooks/useUsers'
 import { IDiet, IMeal } from '@/interfaces/Diet'
-import DietFormModal from '@/components/admin/DietFormModal'
-import AssignDietModal from '@/components/admin/AssignDietModal'
+import DietFormModal from '@/components/common/DietFormModal'
+import AssignDietModal from '@/components/common/AssignDietModal'
 import GenericFilterModal, {
   FilterField,
 } from '@/components/common/GenericFilterModal'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
-import DietCard from '@/components/admin/DietCard'
+import DietCard from '@/components/common/DietCard'
+import { GlobalStyles, Colors } from '@/styles/globalStyles'
 
 interface FilterState {
   nome: string
@@ -310,7 +311,7 @@ export default function DietsScreen() {
     {
       icon: 'filter',
       onPress: () => setFilterModalVisible(true),
-      color: '#007AFF',
+      color: Colors.primary,
     },
     {
       icon: 'plus',
@@ -318,7 +319,7 @@ export default function DietsScreen() {
         resetForm()
         setModalVisible(true)
       },
-      color: '#007AFF',
+      color: Colors.primary,
     },
   ]
 
@@ -333,7 +334,7 @@ export default function DietsScreen() {
   )
 
   return (
-    <View style={styles.container}>
+    <View style={GlobalStyles.container}>
       <PageHeader title="Gerenciar Dietas" buttons={headerButtons} />
 
       <FlatList
@@ -343,7 +344,7 @@ export default function DietsScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={styles.list}
+        style={GlobalStyles.list}
         showsVerticalScrollIndicator={false}
       />
 
@@ -394,15 +395,3 @@ export default function DietsScreen() {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  list: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-})

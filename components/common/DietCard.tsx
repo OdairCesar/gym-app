@@ -1,8 +1,9 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { IDiet } from '@/interfaces/Diet'
 import { User } from '@/interfaces/User'
+import { Colors } from '@/styles/globalStyles'
 
 interface DietCardProps {
   diet: IDiet
@@ -29,7 +30,11 @@ export default function DietCard({
       <View style={styles.header}>
         <Text style={styles.title}>{diet.nome}</Text>
         <View style={styles.mealsCount}>
-          <MaterialIcons name="restaurant-menu" size={16} color="#007AFF" />
+          <MaterialIcons
+            name="restaurant-menu"
+            size={16}
+            color={Colors.primary}
+          />
           <Text style={styles.mealsCountText}>
             {diet.refeicoes?.length || 0} refeições
           </Text>
@@ -83,7 +88,7 @@ export default function DietCard({
           style={[styles.actionButton, styles.assignButton]}
           onPress={() => onAssignToClient(diet)}
         >
-          <MaterialIcons name="person-add" size={16} color="#34C759" />
+          <MaterialIcons name="person-add" size={16} color={Colors.success} />
           <Text style={styles.assignButtonText}>Atribuir</Text>
         </TouchableOpacity>
 
@@ -91,7 +96,7 @@ export default function DietCard({
           style={[styles.actionButton, styles.editButton]}
           onPress={() => onEdit(diet)}
         >
-          <MaterialIcons name="edit" size={16} color="#007AFF" />
+          <MaterialIcons name="edit" size={16} color={Colors.primary} />
           <Text style={styles.editButtonText}>Editar</Text>
         </TouchableOpacity>
 
@@ -99,7 +104,7 @@ export default function DietCard({
           style={[styles.actionButton, styles.deleteButton]}
           onPress={() => onDelete(diet._id || '')}
         >
-          <MaterialIcons name="delete" size={16} color="#FF3B30" />
+          <MaterialIcons name="delete" size={16} color={Colors.danger} />
           <Text style={styles.deleteButtonText}>Excluir</Text>
         </TouchableOpacity>
       </View>
@@ -109,11 +114,11 @@ export default function DietCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.backgroundSecondary,
     borderRadius: 12,
     marginVertical: 4,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: {
       width: 0,
       height: 1,
@@ -131,27 +136,27 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: Colors.text,
     flex: 1,
     marginRight: 8,
   },
   mealsCount: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F8FF',
+    backgroundColor: Colors.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   mealsCountText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: Colors.primary,
     fontWeight: '500',
     marginLeft: 4,
   },
   description: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: Colors.textSecondary,
     marginBottom: 12,
     lineHeight: 20,
   },
@@ -167,13 +172,13 @@ const styles = StyleSheet.create({
   },
   nutritionLabel: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: Colors.textSecondary,
     fontWeight: '500',
     marginRight: 4,
   },
   nutritionValue: {
     fontSize: 12,
-    color: '#34C759',
+    color: Colors.success,
     fontWeight: '600',
   },
   details: {
@@ -186,12 +191,12 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: Colors.textSecondary,
     fontWeight: '500',
   },
   detailValue: {
     fontSize: 14,
-    color: '#000000',
+    color: Colors.text,
     fontWeight: '500',
     flex: 1,
     textAlign: 'right',
@@ -211,30 +216,30 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   assignButton: {
-    backgroundColor: '#E8F5E8',
+    backgroundColor: Colors.successLight,
   },
   editButton: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: Colors.primaryButtonLight,
   },
   deleteButton: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: Colors.dangerLight,
   },
   editButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#007AFF',
+    color: Colors.primary,
     marginLeft: 4,
   },
   deleteButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#FF3B30',
+    color: Colors.danger,
     marginLeft: 4,
   },
   assignButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#34C759',
+    color: Colors.success,
     marginLeft: 4,
   },
 })

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Training } from '@/interfaces/Training'
 import { User } from '@/interfaces/User'
+import { Colors } from '@/styles/globalStyles'
 
 interface TrainingCardProps {
   training: Training
@@ -44,13 +45,21 @@ export default function TrainingCard({
           style={styles.actionButton}
           onPress={() => onEdit(training)}
         >
-          <MaterialCommunityIcons name="pencil" size={20} color="#007AFF" />
+          <MaterialCommunityIcons
+            name="pencil"
+            size={20}
+            color={Colors.primary}
+          />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onDelete(training._id)}
         >
-          <MaterialCommunityIcons name="delete" size={20} color="#FF3B30" />
+          <MaterialCommunityIcons
+            name="delete"
+            size={20}
+            color={Colors.danger}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -59,14 +68,14 @@ export default function TrainingCard({
 
 const styles = StyleSheet.create({
   trainingCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.backgroundSecondary,
     borderRadius: 12,
     padding: 16,
     marginVertical: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -78,17 +87,18 @@ const styles = StyleSheet.create({
   trainingName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: Colors.text,
     marginBottom: 4,
   },
   trainingDetails: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: Colors.textSecondary,
     marginBottom: 4,
   },
   trainingDate: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: Colors.textSecondary,
+    marginTop: 4,
   },
   trainingActions: {
     flexDirection: 'row',

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Picker } from '@react-native-picker/picker'
 import { IDiet, IMeal } from '@/interfaces/Diet'
 import { User } from '@/interfaces/User'
+import { Colors } from '@/styles/globalStyles'
 import MealList from './MealList'
 
 interface DietFormModalProps {
@@ -303,12 +304,12 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 17,
-    color: '#FF3B30',
+    color: Colors.error,
   },
   saveButton: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#007AFF',
+    color: Colors.primary,
   },
   formContainer: {
     flex: 1,
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   addFoodButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.primaryButtonLight,
     width: 40,
     height: 40,
     borderRadius: 8,
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addFoodButtonText: {
-    color: '#FFFFFF',
+    color: Colors.primary,
     fontSize: 20,
     fontWeight: '600',
   },
@@ -401,7 +402,7 @@ const styles = StyleSheet.create({
   },
   removeFoodButton: {
     fontSize: 18,
-    color: '#FF3B30',
+    color: Colors.error,
     fontWeight: '600',
     paddingHorizontal: 8,
   },

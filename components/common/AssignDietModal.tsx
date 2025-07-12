@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialIcons } from '@expo/vector-icons'
 import { User } from '@/interfaces/User'
 import { IDiet } from '@/interfaces/Diet'
+import { Colors } from '@/styles/globalStyles'
 
 interface AssignDietModalProps {
   visible: boolean
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#FF3B30',
+    color: Colors.error,
   },
   placeholder: {
     width: 60, // Para centralizar o título
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   },
   clientEmail: {
     fontSize: 14,
-    color: '#007AFF',
+    color: Colors.primary,
     marginBottom: 2,
   },
   clientPhone: {

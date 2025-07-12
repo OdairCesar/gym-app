@@ -1,6 +1,5 @@
 import {
   Text,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
   Alert,
@@ -9,6 +8,7 @@ import {
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'expo-router'
+import { GlobalStyles, Colors } from '@/styles/globalStyles'
 
 export default function ChangePasswordScreen() {
   const { changePassword } = useAuth()
@@ -37,65 +37,35 @@ export default function ChangePasswordScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={GlobalStyles.containerWithPadding}>
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Senha atual"
         secureTextEntry
         value={form.current}
         onChangeText={(v) => setForm({ ...form, current: v })}
       />
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Nova senha"
         secureTextEntry
         value={form.new}
         onChangeText={(v) => setForm({ ...form, new: v })}
       />
       <TextInput
-        style={styles.input}
+        style={GlobalStyles.input}
         placeholder="Confirmar nova senha"
         secureTextEntry
         value={form.confirm}
         onChangeText={(v) => setForm({ ...form, confirm: v })}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handlePasswordChange}>
-        <Text style={styles.buttonText}>Atualizar Senha</Text>
+      <TouchableOpacity
+        style={[GlobalStyles.button, { backgroundColor: Colors.primary }]}
+        onPress={handlePasswordChange}
+      >
+        <Text style={GlobalStyles.buttonText}>Atualizar Senha</Text>
       </TouchableOpacity>
     </ScrollView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#6f42c1',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    elevation: 2,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-})
