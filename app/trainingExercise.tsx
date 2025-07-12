@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import * as Notifications from 'expo-notifications'
-import { GlobalStyles } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 import { useTrainings } from '@/hooks/useTrainings'
 import { ExerciseItem } from '@/components/ExerciseItem'
@@ -34,6 +34,7 @@ export default function TrainingExerciseScreen() {
   const { getTrainingById } = useTrainings()
   const router = useRouter()
   const navigation = useNavigation()
+  const { styles: globalStyles, colors } = useAppTheme()
 
   const [training, setTraining] = useState<Training | null>(null)
   const [loading, setLoading] = useState(true)
@@ -170,24 +171,24 @@ export default function TrainingExerciseScreen() {
 
   if (loading) {
     return (
-      <View style={GlobalStyles.center}>
-        <ActivityIndicator size="large" />
+      <View style={globalStyles.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     )
   }
 
   if (error) {
     return (
-      <View style={GlobalStyles.center}>
-        <Text>Erro: {error}</Text>
+      <View style={globalStyles.center}>
+        <Text style={globalStyles.text}>Erro: {error}</Text>
       </View>
     )
   }
 
   if (!training) {
     return (
-      <View style={GlobalStyles.center}>
-        <Text>Treino não encontrado.</Text>
+      <View style={globalStyles.center}>
+        <Text style={globalStyles.text}>Treino não encontrado.</Text>
       </View>
     )
   }
@@ -227,8 +228,13 @@ export default function TrainingExerciseScreen() {
         </View>
 
         {exercisesToShow.length === 0 && (
-          <View style={GlobalStyles.center}>
-            <Text style={{ fontSize: 18, color: 'green' }}>
+          <View style={globalStyles.center}>
+            <Text
+              style={[
+                globalStyles.text,
+                { fontSize: 18, color: colors.success },
+              ]}
+            >
               {filter === 'completed'
                 ? 'Não há exercícios concluídos!'
                 : filter === 'skipped'

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Modal,
   View,
@@ -6,15 +6,15 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
+  BackHandler,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Picker } from '@react-native-picker/picker'
 import { Training } from '@/interfaces/Training'
 import { Exercise } from '@/interfaces/Exercise'
 import { User } from '@/interfaces/User'
-import { Colors } from '@/styles/globalStyles'
 import ExerciseList from './ExerciseList'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface TrainingFormModalProps {
   visible: boolean
@@ -51,6 +51,110 @@ export default function TrainingFormModal({
   onOpenExerciseModal,
   onCloseExerciseModal,
 }: TrainingFormModalProps) {
+  const { colors } = useAppTheme()
+
+  // Handler para o botão voltar do Android
+  useEffect(() => {
+    const backAction = () => {
+      if (visible) {
+        onClose()
+        return true // Previne o comportamento padrão
+      }
+      return false
+    }
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    )
+
+    return () => backHandler.remove()
+  }, [visible, onClose])
+
+  // Handler para o modal de exercício
+  useEffect(() => {
+    const backAction = () => {
+      if (exerciseModalVisible) {
+        onCloseExerciseModal()
+        return true // Previne o comportamento padrão
+      }
+      return false
+    }
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    )
+
+    return () => backHandler.remove()
+  }, [exerciseModalVisible, onCloseExerciseModal])
+
+  const modalStyles = {
+    modalContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    modalHeader: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '600' as const,
+      color: colors.text,
+    },
+    cancelButton: {
+      fontSize: 16,
+      color: colors.error,
+    },
+    saveButton: {
+      fontSize: 16,
+      color: colors.primary,
+      fontWeight: '600' as const,
+    },
+    formContainer: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    inputGroup: {
+      marginVertical: 12,
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: '500' as const,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    input: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.text,
+    },
+    pickerContainer: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    picker: {
+      height: 50,
+      color: colors.text,
+    },
+    scrollContent: {
+      paddingBottom: 50,
+    },
+  }
+
   return (
     <>
       <Modal
@@ -58,41 +162,42 @@ export default function TrainingFormModal({
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
+        <SafeAreaView style={modalStyles.modalContainer}>
+          <View style={modalStyles.modalHeader}>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.cancelButton}>Cancelar</Text>
+              <Text style={modalStyles.cancelButton}>Cancelar</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>{title}</Text>
+            <Text style={modalStyles.modalTitle}>{title}</Text>
             <TouchableOpacity onPress={onSave}>
-              <Text style={styles.saveButton}>Salvar</Text>
+              <Text style={modalStyles.saveButton}>Salvar</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView
-            style={styles.formContainer}
-            contentContainerStyle={styles.scrollContent}
+            style={modalStyles.formContainer}
+            contentContainerStyle={modalStyles.scrollContent}
             showsVerticalScrollIndicator={true}
           >
             {/* Nome do Treino */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nome do Treino *</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Nome do Treino *</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 value={formData.nome || ''}
                 onChangeText={(text) => onFormChange('nome', text)}
                 placeholder="Digite o nome do treino"
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
 
             {/* Cliente */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Cliente *</Text>
-              <View style={styles.pickerContainer}>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Cliente *</Text>
+              <View style={modalStyles.pickerContainer}>
                 <Picker
                   selectedValue={formData.user || ''}
                   onValueChange={(value) => onFormChange('user', value)}
-                  style={styles.picker}
+                  style={modalStyles.picker}
                 >
                   <Picker.Item label="Selecione um cliente..." value="" />
                   {clients.map((client, index) => (
@@ -107,13 +212,13 @@ export default function TrainingFormModal({
             </View>
 
             {/* Personal Trainer */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Personal Trainer *</Text>
-              <View style={styles.pickerContainer}>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Personal Trainer *</Text>
+              <View style={modalStyles.pickerContainer}>
                 <Picker
                   selectedValue={formData.treinador || ''}
                   onValueChange={(value) => onFormChange('treinador', value)}
-                  style={styles.picker}
+                  style={modalStyles.picker}
                 >
                   <Picker.Item label="Selecione um personal..." value="" />
                   {personals.map((personal, index) => (
@@ -143,52 +248,54 @@ export default function TrainingFormModal({
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
+        <SafeAreaView style={modalStyles.modalContainer}>
+          <View style={modalStyles.modalHeader}>
             <TouchableOpacity onPress={onCloseExerciseModal}>
-              <Text style={styles.cancelButton}>Cancelar</Text>
+              <Text style={modalStyles.cancelButton}>Cancelar</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Novo Exercício</Text>
+            <Text style={modalStyles.modalTitle}>Novo Exercício</Text>
             <TouchableOpacity onPress={onAddExercise}>
-              <Text style={styles.saveButton}>Adicionar</Text>
+              <Text style={modalStyles.saveButton}>Adicionar</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView
-            style={styles.formContainer}
-            contentContainerStyle={styles.scrollContent}
+            style={modalStyles.formContainer}
+            contentContainerStyle={modalStyles.scrollContent}
             showsVerticalScrollIndicator={true}
           >
             {/* Nome do Exercício */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nome do Exercício *</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Nome do Exercício *</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 value={currentExercise.nome}
                 onChangeText={(text) => onExerciseChange('nome', text)}
                 placeholder="Digite o nome do exercício"
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
 
             {/* Séries */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Séries *</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Séries *</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 value={currentExercise.series}
                 onChangeText={(text) => onExerciseChange('series', text)}
                 placeholder="Ex: 3x12, 4x8-10"
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
 
             {/* Tipo */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Tipo *</Text>
-              <View style={styles.pickerContainer}>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Tipo *</Text>
+              <View style={modalStyles.pickerContainer}>
                 <Picker
                   selectedValue={currentExercise.tipo}
                   onValueChange={(value) => onExerciseChange('tipo', value)}
-                  style={styles.picker}
+                  style={modalStyles.picker}
                 >
                   <Picker.Item label="Musculação" value="musculacao" />
                   <Picker.Item label="Aeróbico" value="aerobico" />
@@ -199,37 +306,42 @@ export default function TrainingFormModal({
             </View>
 
             {/* Carga */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Carga (kg)</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Carga (kg)</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 value={currentExercise.carga.toString()}
                 onChangeText={(text) => onExerciseChange('carga', text)}
                 placeholder="0"
+                placeholderTextColor={colors.textSecondary}
                 keyboardType="numeric"
               />
             </View>
 
             {/* Descanso */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Descanso (segundos)</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>Descanso (segundos)</Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 value={currentExercise.descanso.toString()}
                 onChangeText={(text) => onExerciseChange('descanso', text)}
                 placeholder="60"
+                placeholderTextColor={colors.textSecondary}
                 keyboardType="numeric"
               />
             </View>
 
             {/* URL do Vídeo */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>URL do Vídeo (opcional)</Text>
+            <View style={modalStyles.inputGroup}>
+              <Text style={modalStyles.inputLabel}>
+                URL do Vídeo (opcional)
+              </Text>
               <TextInput
-                style={styles.input}
+                style={modalStyles.input}
                 value={currentExercise.videoUrl || ''}
                 onChangeText={(text) => onExerciseChange('videoUrl', text)}
                 placeholder="https://..."
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
           </ScrollView>
@@ -238,67 +350,3 @@ export default function TrainingFormModal({
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  cancelButton: {
-    fontSize: 16,
-    color: Colors.error,
-  },
-  saveButton: {
-    fontSize: 16,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  formContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  inputGroup: {
-    marginVertical: 12,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  pickerContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  picker: {
-    height: 50,
-  },
-  scrollContent: {
-    paddingBottom: 50,
-  },
-})

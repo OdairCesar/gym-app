@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl } from 'react-native'
+import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
 import { useUsers } from '@/hooks/useUsers'
 import { useTrainings } from '@/hooks/useTrainings'
 import { Training } from '@/interfaces/Training'
@@ -10,7 +10,7 @@ import GenericFilterModal, {
 } from '@/components/common/GenericFilterModal'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
 import TrainingCard from '@/components/common/TrainingCard'
-import { GlobalStyles, Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface FilterState {
   nome: string
@@ -28,6 +28,20 @@ export default function TrainingsScreen() {
     deleteTraining,
     filterTrainings,
   } = useTrainings()
+
+  const { colors } = useAppTheme()
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    list: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+  })
 
   const [filteredTrainings, setFilteredTrainings] = useState<Training[]>([])
   const [refreshing, setRefreshing] = useState(false)
@@ -263,7 +277,7 @@ export default function TrainingsScreen() {
     {
       icon: 'filter',
       onPress: () => setFilterModalVisible(true),
-      color: Colors.primary,
+      color: colors.primary,
     },
     {
       icon: 'plus',
@@ -271,7 +285,7 @@ export default function TrainingsScreen() {
         resetForm()
         setModalVisible(true)
       },
-      color: Colors.primary,
+      color: colors.primary,
     },
   ]
 
@@ -286,17 +300,17 @@ export default function TrainingsScreen() {
   )
 
   return (
-    <View style={GlobalStyles.container}>
+    <View style={styles.container}>
       <PageHeader title="Gerenciar Treinos" buttons={headerButtons} />
 
       <FlatList
         data={filteredTrainings}
-        keyExtractor={(item) => item._id || ''}
+        keyExtractor={(item) => item._id}
         renderItem={renderTrainingItem}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={GlobalStyles.list}
+        style={styles.list}
         showsVerticalScrollIndicator={false}
       />
 

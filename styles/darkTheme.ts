@@ -1,40 +1,40 @@
 import { StyleSheet } from 'react-native'
 
-// Cores principais do sistema
-export const Colors = {
+// Cores principais do sistema - Tema Escuro
+export const DarkColors = {
   // Cores primárias
-  primary: '#007AFF',
-  primaryLight: '#F0F8FF', // Cor azul clara original para backgrounds
-  primaryDark: '#0051D5',
+  primary: '#0A84FF',
+  primaryLight: '#2C2C2E', // Cor mais suave para backgrounds
+  primaryDark: '#0040DD',
 
   // Cores de status
-  success: '#28a745',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  danger: '#FF3B30',
-  info: '#5AC8FA',
+  success: '#32D74B',
+  warning: '#FF9F0A',
+  error: '#FF453A',
+  danger: '#FF453A',
+  info: '#64D2FF',
 
   // Cores de fundo
-  background: '#F2F2F7',
-  backgroundSecondary: '#FFFFFF',
+  background: '#121212', // Fundo mais suave que preto puro
+  backgroundSecondary: '#2C2C2E', // Card background mais visível
 
   // Cores de texto
-  text: '#000000',
-  textSecondary: '#8E8E93',
+  text: '#FFFFFF',
+  textSecondary: '#ABABAB', // Texto secundário mais legível
   textLight: '#FFFFFF',
 
   // Cores de borda
-  border: '#E5E5EA',
-  borderLight: '#C7C7CC',
+  border: '#48484A', // Bordas mais visíveis
+  borderLight: '#5A5A5A',
 
   // Cores especiais
   shadow: '#000000',
-  overlay: 'rgba(0, 0, 0, 0.5)',
+  overlay: 'rgba(0, 0, 0, 0.7)',
 
   // Cores de background para botões
-  successLight: '#E8F5E8',
-  dangerLight: '#FFEBEE',
-  primaryButtonLight: '#E3F2FD', // Cor original para botões de edição
+  successLight: '#1B2D1B',
+  dangerLight: '#2D1B1B',
+  primaryButtonLight: '#1B2B3A', // Cor escura para botões de edição
 }
 
 // Tamanhos de fonte padronizados
@@ -71,39 +71,39 @@ export const BorderRadius = {
 // Sombras padronizadas
 export const Shadows = {
   sm: {
-    shadowColor: Colors.shadow,
+    shadowColor: DarkColors.shadow,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 2,
     elevation: 2,
   },
   md: {
-    shadowColor: Colors.shadow,
+    shadowColor: DarkColors.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
   lg: {
-    shadowColor: Colors.shadow,
+    shadowColor: DarkColors.shadow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 5,
   },
 }
 
-// Estilos globais reutilizáveis
-export const GlobalStyles = StyleSheet.create({
+// Estilos globais reutilizáveis - Tema Escuro
+export const DarkGlobalStyles = StyleSheet.create({
   // Containers
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: DarkColors.background,
   },
 
   containerWithPadding: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: DarkColors.background,
     padding: Spacing.xl,
   },
 
@@ -116,11 +116,17 @@ export const GlobalStyles = StyleSheet.create({
 
   // Cards
   card: {
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: DarkColors.backgroundSecondary,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
-    ...Shadows.md,
+    borderWidth: 1,
+    borderColor: DarkColors.border,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   // Headers
@@ -130,45 +136,45 @@ export const GlobalStyles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: DarkColors.backgroundSecondary,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: DarkColors.border,
   },
 
   // Títulos
   title: {
     fontSize: FontSizes.xxl,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: DarkColors.text,
   },
 
   titleLarge: {
     fontSize: FontSizes.xxxl,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: DarkColors.text,
   },
 
   titleMedium: {
     fontSize: FontSizes.xl,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: DarkColors.text,
   },
 
   titleSmall: {
     fontSize: FontSizes.lg,
     fontWeight: '600',
-    color: Colors.text,
+    color: DarkColors.text,
   },
 
   // Texto
   text: {
     fontSize: FontSizes.md,
-    color: Colors.text,
+    color: DarkColors.text,
   },
 
   textSecondary: {
     fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
+    color: DarkColors.textSecondary,
   },
 
   textCenter: {
@@ -177,13 +183,14 @@ export const GlobalStyles = StyleSheet.create({
 
   // Inputs
   input: {
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: DarkColors.backgroundSecondary,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     fontSize: FontSizes.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: DarkColors.border,
     marginBottom: Spacing.lg,
+    color: DarkColors.text,
   },
 
   inputGroup: {
@@ -193,13 +200,13 @@ export const GlobalStyles = StyleSheet.create({
   inputLabel: {
     fontSize: FontSizes.md,
     fontWeight: '500',
-    color: Colors.text,
+    color: DarkColors.text,
     marginBottom: Spacing.sm,
   },
 
   // Botões
   button: {
-    backgroundColor: Colors.primary,
+    backgroundColor: DarkColors.primary,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     alignItems: 'center',
@@ -208,31 +215,31 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   buttonText: {
-    color: Colors.textLight,
+    color: DarkColors.textLight,
     fontSize: FontSizes.md,
     fontWeight: '600',
   },
 
   buttonSecondary: {
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: DarkColors.backgroundSecondary,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: DarkColors.border,
   },
 
   buttonSecondaryText: {
-    color: Colors.primary,
+    color: DarkColors.primary,
   },
 
   buttonSuccess: {
-    backgroundColor: Colors.success,
+    backgroundColor: DarkColors.success,
   },
 
   buttonError: {
-    backgroundColor: Colors.error,
+    backgroundColor: DarkColors.error,
   },
 
   buttonWarning: {
-    backgroundColor: Colors.warning,
+    backgroundColor: DarkColors.warning,
   },
 
   buttonSmall: {
@@ -245,7 +252,7 @@ export const GlobalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Colors.primary,
+    backgroundColor: DarkColors.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -253,7 +260,7 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   themeButtonText: {
-    color: Colors.textLight,
+    color: DarkColors.textLight,
     fontSize: FontSizes.md,
     fontWeight: '600',
   },
@@ -261,7 +268,7 @@ export const GlobalStyles = StyleSheet.create({
   // Modais
   modalContainer: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: DarkColors.background,
   },
 
   modalHeader: {
@@ -270,25 +277,25 @@ export const GlobalStyles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: DarkColors.backgroundSecondary,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: DarkColors.border,
   },
 
   modalTitle: {
     fontSize: FontSizes.lg,
     fontWeight: '600',
-    color: Colors.text,
+    color: DarkColors.text,
   },
 
   modalCancelButton: {
     fontSize: FontSizes.md,
-    color: Colors.error,
+    color: DarkColors.error,
   },
 
   modalSaveButton: {
     fontSize: FontSizes.md,
-    color: Colors.primary,
+    color: DarkColors.primary,
     fontWeight: '600',
   },
 
@@ -300,14 +307,15 @@ export const GlobalStyles = StyleSheet.create({
 
   // Picker
   pickerContainer: {
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: DarkColors.backgroundSecondary,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: DarkColors.border,
   },
 
   picker: {
     height: 50,
+    color: DarkColors.text,
   },
 
   // Tags
@@ -320,23 +328,23 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   tagPrimary: {
-    backgroundColor: Colors.primary,
-    color: Colors.textLight,
+    backgroundColor: DarkColors.primary,
+    color: DarkColors.textLight,
   },
 
   tagError: {
-    backgroundColor: Colors.error,
-    color: Colors.textLight,
+    backgroundColor: DarkColors.error,
+    color: DarkColors.textLight,
   },
 
   tagSuccess: {
-    backgroundColor: Colors.success,
-    color: Colors.textLight,
+    backgroundColor: DarkColors.success,
+    color: DarkColors.textLight,
   },
 
   tagSecondary: {
-    backgroundColor: Colors.textSecondary,
-    color: Colors.textLight,
+    backgroundColor: DarkColors.textSecondary,
+    color: DarkColors.textLight,
   },
 
   // Ações
@@ -404,7 +412,7 @@ export const GlobalStyles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: DarkColors.primaryLight,
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.lg,
@@ -412,7 +420,7 @@ export const GlobalStyles = StyleSheet.create({
 
   badgeText: {
     fontSize: FontSizes.xs,
-    color: Colors.primary,
+    color: DarkColors.primary,
     fontWeight: '500',
   },
 
@@ -427,19 +435,19 @@ export const GlobalStyles = StyleSheet.create({
   label: {
     fontSize: FontSizes.sm,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: DarkColors.textSecondary,
   },
 
   labelSmall: {
     fontSize: FontSizes.xs,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: DarkColors.textSecondary,
   },
 
   // Textos coloridos
   textSuccess: {
     fontSize: FontSizes.xs,
-    color: Colors.success,
+    color: DarkColors.success,
     fontWeight: '600',
   },
 
@@ -462,7 +470,7 @@ export const GlobalStyles = StyleSheet.create({
 
   radioLabel: {
     fontSize: FontSizes.md,
-    color: Colors.text,
+    color: DarkColors.text,
     marginLeft: Spacing.sm,
   },
 
@@ -479,7 +487,7 @@ export const GlobalStyles = StyleSheet.create({
 
   checkboxLabel: {
     fontSize: FontSizes.md,
-    color: Colors.text,
+    color: DarkColors.text,
     marginLeft: Spacing.sm,
   },
 
@@ -493,7 +501,7 @@ export const GlobalStyles = StyleSheet.create({
   pageTitle: {
     fontSize: FontSizes.xxl,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: DarkColors.text,
     textAlign: 'center',
     marginBottom: Spacing.xxl,
   },
@@ -506,7 +514,7 @@ export const GlobalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Colors.primary,
+    backgroundColor: DarkColors.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -514,7 +522,7 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   primaryButtonText: {
-    color: Colors.textLight,
+    color: DarkColors.textLight,
     fontSize: FontSizes.md,
     fontWeight: '600',
   },
@@ -523,7 +531,7 @@ export const GlobalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Colors.textSecondary,
+    backgroundColor: DarkColors.textSecondary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -531,7 +539,7 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   secondaryButtonText: {
-    color: Colors.textLight,
+    color: DarkColors.textLight,
     fontSize: FontSizes.md,
     fontWeight: '600',
   },
@@ -540,7 +548,7 @@ export const GlobalStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Colors.error,
+    backgroundColor: DarkColors.error,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -548,7 +556,7 @@ export const GlobalStyles = StyleSheet.create({
   },
 
   dangerButtonText: {
-    color: Colors.textLight,
+    color: DarkColors.textLight,
     fontSize: FontSizes.md,
     fontWeight: '600',
   },

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { IDiet } from '@/interfaces/Diet'
 import { User } from '@/interfaces/User'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface DietCardProps {
   diet: IDiet
@@ -20,10 +20,139 @@ export default function DietCard({
   onDelete,
   onAssignToClient,
 }: DietCardProps) {
+  const { colors } = useAppTheme()
+
   const getPersonalName = (personalId: string) => {
     const personal = personals.find((p) => p._id === personalId)
     return personal?.nome || 'Personal não encontrado'
   }
+
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      marginVertical: 4,
+      padding: 16,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+    },
+    mealsCount: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primaryLight,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    mealsCountText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.primary,
+      marginLeft: 4,
+    },
+    description: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 12,
+      lineHeight: 20,
+    },
+    nutritionInfo: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 12,
+    },
+    nutritionItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 16,
+      marginBottom: 4,
+    },
+    nutritionLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginRight: 4,
+    },
+    nutritionValue: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.success,
+    },
+    details: {
+      marginBottom: 12,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    detailLabel: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    detailValue: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    actions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+      marginLeft: 8,
+    },
+    assignButton: {
+      backgroundColor: colors.successLight,
+    },
+    editButton: {
+      backgroundColor: colors.primaryButtonLight,
+    },
+    deleteButton: {
+      backgroundColor: colors.dangerLight,
+    },
+    editButtonText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.primary,
+      marginLeft: 4,
+    },
+    deleteButtonText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.danger,
+      marginLeft: 4,
+    },
+    assignButtonText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.success,
+      marginLeft: 4,
+    },
+  })
 
   return (
     <View style={styles.card}>
@@ -33,7 +162,7 @@ export default function DietCard({
           <MaterialIcons
             name="restaurant-menu"
             size={16}
-            color={Colors.primary}
+            color={colors.primary}
           />
           <Text style={styles.mealsCountText}>
             {diet.refeicoes?.length || 0} refeições
@@ -88,7 +217,7 @@ export default function DietCard({
           style={[styles.actionButton, styles.assignButton]}
           onPress={() => onAssignToClient(diet)}
         >
-          <MaterialIcons name="person-add" size={16} color={Colors.success} />
+          <MaterialIcons name="person-add" size={16} color={colors.success} />
           <Text style={styles.assignButtonText}>Atribuir</Text>
         </TouchableOpacity>
 
@@ -96,7 +225,7 @@ export default function DietCard({
           style={[styles.actionButton, styles.editButton]}
           onPress={() => onEdit(diet)}
         >
-          <MaterialIcons name="edit" size={16} color={Colors.primary} />
+          <MaterialIcons name="edit" size={16} color={colors.primary} />
           <Text style={styles.editButtonText}>Editar</Text>
         </TouchableOpacity>
 
@@ -104,142 +233,10 @@ export default function DietCard({
           style={[styles.actionButton, styles.deleteButton]}
           onPress={() => onDelete(diet._id || '')}
         >
-          <MaterialIcons name="delete" size={16} color={Colors.danger} />
+          <MaterialIcons name="delete" size={16} color={colors.danger} />
           <Text style={styles.deleteButtonText}>Excluir</Text>
         </TouchableOpacity>
       </View>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    marginVertical: 4,
-    padding: 16,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    flex: 1,
-    marginRight: 8,
-  },
-  mealsCount: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  mealsCountText: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  description: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  nutritionInfo: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  nutritionItem: {
-    flexDirection: 'row',
-    marginRight: 16,
-    marginBottom: 4,
-  },
-  nutritionLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-    marginRight: 4,
-  },
-  nutritionValue: {
-    fontSize: 12,
-    color: Colors.success,
-    fontWeight: '600',
-  },
-  details: {
-    marginBottom: 12,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  detailValue: {
-    fontSize: 14,
-    color: Colors.text,
-    fontWeight: '500',
-    flex: 1,
-    textAlign: 'right',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    flexWrap: 'wrap',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginLeft: 8,
-    marginBottom: 4,
-  },
-  assignButton: {
-    backgroundColor: Colors.successLight,
-  },
-  editButton: {
-    backgroundColor: Colors.primaryButtonLight,
-  },
-  deleteButton: {
-    backgroundColor: Colors.dangerLight,
-  },
-  editButtonText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.primary,
-    marginLeft: 4,
-  },
-  deleteButtonText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.danger,
-    marginLeft: 4,
-  },
-  assignButtonText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.success,
-    marginLeft: 4,
-  },
-})

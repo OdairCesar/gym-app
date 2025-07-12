@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { User } from '@/interfaces/User'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface UserCardProps {
   user: User
@@ -11,24 +11,92 @@ interface UserCardProps {
 }
 
 export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
+  const { colors } = useAppTheme()
+
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: 16,
+      marginVertical: 4,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    userEmail: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 8,
+    },
+    userTags: {
+      flexDirection: 'row',
+      gap: 6,
+      marginTop: 8,
+    },
+    tag: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    tagError: {
+      backgroundColor: colors.dangerLight,
+      color: colors.danger,
+    },
+    tagPrimary: {
+      backgroundColor: colors.primaryLight,
+      color: colors.primary,
+    },
+    tagSecondary: {
+      backgroundColor: colors.borderLight,
+      color: colors.textSecondary,
+    },
+    actionButtonGroup: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    actionButton: {
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: colors.background,
+    },
+  })
+
   return (
-    <View style={styles.userCard}>
+    <View style={styles.card}>
       <View style={styles.userInfo}>
         <Text style={styles.userName}>{user.nome}</Text>
         <Text style={styles.userEmail}>{user.email}</Text>
         <View style={styles.userTags}>
           {user.isAdmin && (
-            <Text style={[styles.tag, styles.adminTag]}>Admin</Text>
+            <Text style={[styles.tag, styles.tagError]}>Admin</Text>
           )}
           {user.isPersonal && (
-            <Text style={[styles.tag, styles.personalTag]}>Personal</Text>
+            <Text style={[styles.tag, styles.tagPrimary]}>Personal</Text>
           )}
           {!user.isActive && (
-            <Text style={[styles.tag, styles.inactiveTag]}>Inativo</Text>
+            <Text style={[styles.tag, styles.tagSecondary]}>Inativo</Text>
           )}
         </View>
       </View>
-      <View style={styles.userActions}>
+      <View style={styles.actionButtonGroup}>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onEdit(user)}
@@ -36,7 +104,7 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
           <MaterialCommunityIcons
             name="pencil"
             size={20}
-            color={Colors.primary}
+            color={colors.primary}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -46,71 +114,10 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
           <MaterialCommunityIcons
             name="delete"
             size={20}
-            color={Colors.danger}
+            color={colors.danger}
           />
         </TouchableOpacity>
       </View>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  userCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 6,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 8,
-  },
-  userTags: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  tag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  adminTag: {
-    backgroundColor: Colors.danger,
-    color: Colors.textLight,
-  },
-  personalTag: {
-    backgroundColor: Colors.primary,
-    color: Colors.textLight,
-  },
-  inactiveTag: {
-    backgroundColor: Colors.textSecondary,
-    color: Colors.textLight,
-  },
-  userActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    padding: 8,
-  },
-})

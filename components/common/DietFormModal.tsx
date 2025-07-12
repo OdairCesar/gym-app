@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Modal,
   View,
@@ -7,12 +7,13 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  BackHandler,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Picker } from '@react-native-picker/picker'
 import { IDiet, IMeal } from '@/interfaces/Diet'
 import { User } from '@/interfaces/User'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 import MealList from './MealList'
 
 interface DietFormModalProps {
@@ -56,6 +57,155 @@ export default function DietFormModal({
   onAddFood,
   onRemoveFood,
 }: DietFormModalProps) {
+  const { colors } = useAppTheme()
+
+  // Handler para o botão voltar do Android
+  useEffect(() => {
+    const backAction = () => {
+      if (visible) {
+        onClose()
+        return true // Previne o comportamento padrão
+      }
+      return false
+    }
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    )
+
+    return () => backHandler.remove()
+  }, [visible, onClose])
+
+  const styles = StyleSheet.create({
+    modalContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: 17,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    cancelButton: {
+      fontSize: 17,
+      color: colors.danger,
+    },
+    saveButton: {
+      fontSize: 17,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    formContainer: {
+      flex: 1,
+      padding: 16,
+    },
+    inputGroup: {
+      marginBottom: 16,
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    input: {
+      backgroundColor: colors.backgroundSecondary,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 16,
+      color: colors.text,
+    },
+    textArea: {
+      height: 80,
+      textAlignVertical: 'top',
+    },
+    pickerContainer: {
+      backgroundColor: colors.backgroundSecondary,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+    },
+    picker: {
+      height: 50,
+      color: colors.text,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+      marginTop: 8,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    halfWidth: {
+      width: '48%',
+    },
+    foodInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    foodInput: {
+      flex: 1,
+      marginRight: 8,
+    },
+    addFoodButton: {
+      backgroundColor: colors.primaryLight,
+      width: 40,
+      height: 40,
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    addFoodButtonText: {
+      color: colors.primary,
+      fontSize: 20,
+      fontWeight: '600',
+    },
+    foodsList: {
+      marginTop: 8,
+    },
+    foodItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.backgroundSecondary,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 6,
+      marginBottom: 4,
+    },
+    foodText: {
+      fontSize: 14,
+      color: colors.text,
+      flex: 1,
+    },
+    removeFoodButton: {
+      fontSize: 18,
+      color: colors.danger,
+      fontWeight: '600',
+      paddingHorizontal: 8,
+    },
+    scrollContent: {
+      paddingBottom: 50,
+    },
+  })
   return (
     <>
       <Modal
@@ -281,132 +431,3 @@ export default function DietFormModal({
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E1E1E1',
-  },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  cancelButton: {
-    fontSize: 17,
-    color: Colors.error,
-  },
-  saveButton: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  formContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E1E1E1',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: '#000000',
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  pickerContainer: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E1E1E1',
-    borderRadius: 8,
-  },
-  picker: {
-    height: 50,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  halfWidth: {
-    width: '48%',
-  },
-  foodInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  foodInput: {
-    flex: 1,
-    marginRight: 8,
-  },
-  addFoodButton: {
-    backgroundColor: Colors.primaryButtonLight,
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addFoodButtonText: {
-    color: Colors.primary,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  foodsList: {
-    marginTop: 8,
-  },
-  foodItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    marginBottom: 4,
-  },
-  foodText: {
-    fontSize: 14,
-    color: '#000000',
-    flex: 1,
-  },
-  removeFoodButton: {
-    fontSize: 18,
-    color: Colors.error,
-    fontWeight: '600',
-    paddingHorizontal: 8,
-  },
-  scrollContent: {
-    paddingBottom: 50,
-  },
-})

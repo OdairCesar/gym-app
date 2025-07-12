@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { Product } from '@/interfaces/Product'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface ProductCardProps {
   product: Product
@@ -15,6 +15,134 @@ export default function ProductCard({
   onEdit,
   onDelete,
 }: ProductCardProps) {
+  const { colors } = useAppTheme()
+
+  const styles = StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      marginVertical: 4,
+      padding: 16,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    imageContainer: {
+      marginRight: 16,
+    },
+    image: {
+      width: 80,
+      height: 80,
+      borderRadius: 8,
+    },
+    placeholderImage: {
+      width: 80,
+      height: 80,
+      borderRadius: 8,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    content: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 8,
+    },
+    name: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+      marginRight: 8,
+    },
+    statusContainer: {
+      flexDirection: 'row',
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    statusText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.textLight,
+    },
+    description: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 12,
+      lineHeight: 20,
+    },
+    details: {
+      marginBottom: 12,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 4,
+    },
+    detailLabel: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    detailValue: {
+      fontSize: 14,
+      color: colors.text,
+      fontWeight: '500',
+    },
+    price: {
+      fontSize: 14,
+      color: colors.success,
+      fontWeight: '600',
+    },
+    stock: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    actions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+      marginLeft: 8,
+    },
+    editButton: {
+      backgroundColor: colors.primaryButtonLight,
+    },
+    deleteButton: {
+      backgroundColor: colors.dangerLight,
+    },
+    editButtonText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.primary,
+      marginLeft: 4,
+    },
+    deleteButtonText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.danger,
+      marginLeft: 4,
+    },
+  })
+
   return (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
@@ -29,7 +157,7 @@ export default function ProductCard({
             <MaterialIcons
               name="shopping-bag"
               size={40}
-              color={Colors.borderLight}
+              color={colors.borderLight}
             />
           </View>
         )}
@@ -44,8 +172,8 @@ export default function ProductCard({
                 styles.statusBadge,
                 {
                   backgroundColor: product.ativo
-                    ? Colors.success
-                    : Colors.danger,
+                    ? colors.success
+                    : colors.danger,
                 },
               ]}
             >
@@ -77,10 +205,10 @@ export default function ProductCard({
                 {
                   color:
                     product.estoque > 10
-                      ? Colors.success
+                      ? colors.success
                       : product.estoque > 0
-                        ? Colors.warning
-                        : Colors.danger,
+                        ? colors.warning
+                        : colors.danger,
                 },
               ]}
             >
@@ -94,7 +222,7 @@ export default function ProductCard({
             style={[styles.actionButton, styles.editButton]}
             onPress={() => onEdit(product)}
           >
-            <MaterialIcons name="edit" size={16} color={Colors.primary} />
+            <MaterialIcons name="edit" size={16} color={colors.primary} />
             <Text style={styles.editButtonText}>Editar</Text>
           </TouchableOpacity>
 
@@ -102,7 +230,7 @@ export default function ProductCard({
             style={[styles.actionButton, styles.deleteButton]}
             onPress={() => onDelete(product._id)}
           >
-            <MaterialIcons name="delete" size={16} color={Colors.danger} />
+            <MaterialIcons name="delete" size={16} color={colors.danger} />
             <Text style={styles.deleteButtonText}>Excluir</Text>
           </TouchableOpacity>
         </View>
@@ -110,129 +238,3 @@ export default function ProductCard({
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    marginVertical: 4,
-    padding: 16,
-    shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  imageContainer: {
-    marginRight: 16,
-  },
-  image: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  placeholderImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: Colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    flex: 1,
-    marginRight: 8,
-  },
-  statusContainer: {
-    flexDirection: 'row',
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.textLight,
-  },
-  description: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  details: {
-    marginBottom: 12,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  detailValue: {
-    fontSize: 14,
-    color: Colors.text,
-    fontWeight: '500',
-  },
-  price: {
-    fontSize: 14,
-    color: Colors.success,
-    fontWeight: '600',
-  },
-  stock: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginLeft: 8,
-  },
-  editButton: {
-    backgroundColor: Colors.primaryButtonLight,
-  },
-  deleteButton: {
-    backgroundColor: Colors.dangerLight,
-  },
-  editButtonText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.primary,
-    marginLeft: 4,
-  },
-  deleteButtonText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.danger,
-    marginLeft: 4,
-  },
-})

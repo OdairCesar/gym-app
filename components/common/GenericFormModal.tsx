@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Modal,
   View,
@@ -6,12 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
+  BackHandler,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Picker } from '@react-native-picker/picker'
-import { GlobalStyles, Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 export interface FormField {
   key: string
@@ -52,6 +52,116 @@ export default function GenericFormModal({
   onSave,
   onFieldChange,
 }: GenericFormModalProps) {
+  const { colors } = useAppTheme()
+
+  // Handler para o botão voltar do Android
+  useEffect(() => {
+    const backAction = () => {
+      if (visible) {
+        onClose()
+        return true // Previne o comportamento padrão
+      }
+      return false
+    }
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    )
+
+    return () => backHandler.remove()
+  }, [visible, onClose])
+
+  const modalStyles = {
+    modalContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    modalHeader: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '600' as const,
+      color: colors.text,
+    },
+    cancelButton: {
+      fontSize: 16,
+      color: colors.error,
+    },
+    saveButton: {
+      fontSize: 16,
+      color: colors.primary,
+      fontWeight: '600' as const,
+    },
+    formContainer: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    inputGroup: {
+      marginVertical: 12,
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: '500' as const,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    input: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.text,
+    },
+    pickerContainer: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    picker: {
+      height: 50,
+      color: colors.text,
+    },
+    radioGroup: {
+      flexDirection: 'column' as const,
+      gap: 8,
+    },
+    radioOption: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      paddingVertical: 8,
+    },
+    radioLabel: {
+      fontSize: 16,
+      color: colors.text,
+      marginLeft: 8,
+    },
+    checkboxGroup: {
+      marginVertical: 12,
+    },
+    checkboxOption: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      paddingVertical: 8,
+    },
+    checkboxLabel: {
+      fontSize: 16,
+      color: colors.text,
+      marginLeft: 8,
+    },
+  }
+
   const renderField = (field: FormField) => {
     switch (field.type) {
       case 'text':
@@ -61,16 +171,17 @@ export default function GenericFormModal({
       case 'number':
       case 'multiline':
         return (
-          <View key={field.key} style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
+          <View key={field.key} style={modalStyles.inputGroup}>
+            <Text style={modalStyles.inputLabel}>
               {field.label}
               {field.required && ' *'}
             </Text>
             <TextInput
-              style={styles.input}
+              style={modalStyles.input}
               value={field.value as string}
               onChangeText={(text) => onFieldChange(field.key, text)}
               placeholder={field.placeholder}
+              placeholderTextColor={colors.textSecondary}
               keyboardType={field.keyboardType || 'default'}
               multiline={field.multiline || false}
               secureTextEntry={field.secureTextEntry || false}
@@ -81,18 +192,18 @@ export default function GenericFormModal({
 
       case 'select':
         return (
-          <View key={field.key} style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
+          <View key={field.key} style={modalStyles.inputGroup}>
+            <Text style={modalStyles.inputLabel}>
               {field.label}
               {field.required && ' *'}
             </Text>
-            <View style={styles.pickerContainer}>
+            <View style={modalStyles.pickerContainer}>
               <Picker
                 selectedValue={field.value as string}
                 onValueChange={(itemValue: string) =>
                   onFieldChange(field.key, itemValue)
                 }
-                style={styles.picker}
+                style={modalStyles.picker}
               >
                 <Picker.Item
                   label={field.placeholder || 'Selecione...'}
@@ -112,16 +223,16 @@ export default function GenericFormModal({
 
       case 'radio':
         return (
-          <View key={field.key} style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
+          <View key={field.key} style={modalStyles.inputGroup}>
+            <Text style={modalStyles.inputLabel}>
               {field.label}
               {field.required && ' *'}
             </Text>
-            <View style={GlobalStyles.radioGroup}>
+            <View style={modalStyles.radioGroup}>
               {field.options?.map((option) => (
                 <TouchableOpacity
                   key={option.value.toString()}
-                  style={GlobalStyles.radioOption}
+                  style={modalStyles.radioOption}
                   onPress={() => onFieldChange(field.key, option.value)}
                 >
                   <MaterialCommunityIcons
@@ -131,9 +242,9 @@ export default function GenericFormModal({
                         : 'radiobox-blank'
                     }
                     size={20}
-                    color={Colors.primary}
+                    color={colors.primary}
                   />
-                  <Text style={GlobalStyles.radioLabel}>{option.label}</Text>
+                  <Text style={modalStyles.radioLabel}>{option.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -142,9 +253,9 @@ export default function GenericFormModal({
 
       case 'checkbox':
         return (
-          <View key={field.key} style={GlobalStyles.checkboxGroup}>
+          <View key={field.key} style={modalStyles.checkboxGroup}>
             <TouchableOpacity
-              style={GlobalStyles.checkboxOption}
+              style={modalStyles.checkboxOption}
               onPress={() => onFieldChange(field.key, !field.value)}
             >
               <MaterialCommunityIcons
@@ -152,9 +263,9 @@ export default function GenericFormModal({
                   field.value ? 'checkbox-marked' : 'checkbox-blank-outline'
                 }
                 size={20}
-                color={Colors.primary}
+                color={colors.primary}
               />
-              <Text style={GlobalStyles.checkboxLabel}>{field.label}</Text>
+              <Text style={modalStyles.checkboxLabel}>{field.label}</Text>
             </TouchableOpacity>
           </View>
         )
@@ -170,117 +281,20 @@ export default function GenericFormModal({
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <SafeAreaView style={GlobalStyles.modalContainer}>
-        <View style={GlobalStyles.modalHeader}>
+      <SafeAreaView style={modalStyles.modalContainer}>
+        <View style={modalStyles.modalHeader}>
           <TouchableOpacity onPress={onClose}>
-            <Text style={GlobalStyles.modalCancelButton}>Cancelar</Text>
+            <Text style={modalStyles.cancelButton}>Cancelar</Text>
           </TouchableOpacity>
-          <Text style={GlobalStyles.modalTitle}>{title}</Text>
+          <Text style={modalStyles.modalTitle}>{title}</Text>
           <TouchableOpacity onPress={onSave}>
-            <Text style={GlobalStyles.modalSaveButton}>Salvar</Text>
+            <Text style={modalStyles.saveButton}>Salvar</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView style={GlobalStyles.formContainer}>
+        <ScrollView style={modalStyles.formContainer}>
           {fields.map(renderField)}
         </ScrollView>
       </SafeAreaView>
     </Modal>
   )
 }
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  cancelButton: {
-    fontSize: 16,
-    color: Colors.error,
-  },
-  saveButton: {
-    fontSize: 16,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  formContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  inputGroup: {
-    marginVertical: 12,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  clearFiltersButton: {
-    backgroundColor: Colors.error,
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    marginVertical: 12,
-  },
-  clearFiltersText: {
-    color: Colors.textLight,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  pickerContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  picker: {
-    height: 50,
-  },
-  filterPickerContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  filterPickerOption: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  filterPickerOptionSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  filterPickerText: {
-    fontSize: 14,
-    color: '#000000',
-  },
-  filterPickerTextSelected: {
-    color: Colors.textLight,
-  },
-})

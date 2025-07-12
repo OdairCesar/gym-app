@@ -2,13 +2,14 @@ import { Text, TextInput, ScrollView, TouchableOpacity } from 'react-native'
 import { useState, useEffect } from 'react'
 import { useAuth as useAuthContext } from '@/context/authContext'
 import { useAuth } from '@/hooks/useAuth'
-import { GlobalStyles } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 import { useRouter } from 'expo-router'
 
 export default function EditProfileScreen() {
   const { getUser } = useAuthContext()
   const { updateProfile } = useAuth()
   const router = useRouter()
+  const { styles, colors } = useAppTheme()
   const [form, setForm] = useState({
     nome: '',
     telefone: '',
@@ -58,55 +59,62 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={GlobalStyles.containerWithPadding}>
+    <ScrollView contentContainerStyle={styles.containerWithPadding}>
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Nome"
+        placeholderTextColor={colors.textSecondary}
         value={form.nome}
         onChangeText={(v) => setForm({ ...form, nome: v })}
       />
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Telefone"
+        placeholderTextColor={colors.textSecondary}
         value={form.telefone}
         onChangeText={(v) => setForm({ ...form, telefone: v })}
       />
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Data de Nascimento"
+        placeholderTextColor={colors.textSecondary}
         value={form.dataNascimento}
         onChangeText={(v) => setForm({ ...form, dataNascimento: v })}
       />
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="CPF"
+        placeholderTextColor={colors.textSecondary}
         value={form.cpf}
         onChangeText={(v) => setForm({ ...form, cpf: v })}
       />
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Sexo"
+        placeholderTextColor={colors.textSecondary}
         value={form.sexo}
         onChangeText={(v) => setForm({ ...form, sexo: v })}
       />
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Profissão"
+        placeholderTextColor={colors.textSecondary}
         value={form.profissao}
         onChangeText={(v) => setForm({ ...form, profissao: v })}
       />
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Endereço"
+        placeholderTextColor={colors.textSecondary}
         value={form.endereco}
         onChangeText={(v) => setForm({ ...form, endereco: v })}
       />
 
       <TouchableOpacity
-        style={[GlobalStyles.button, GlobalStyles.buttonSuccess]}
+        style={[styles.button, styles.buttonSuccess]}
         onPress={handleUpdate}
       >
-        <Text style={GlobalStyles.buttonText}>Salvar Alterações</Text>
+        <Text style={styles.buttonText}>Salvar Alterações</Text>
       </TouchableOpacity>
     </ScrollView>
   )

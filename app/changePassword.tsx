@@ -8,11 +8,12 @@ import {
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'expo-router'
-import { GlobalStyles, Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 export default function ChangePasswordScreen() {
   const { changePassword } = useAuth()
   const router = useRouter()
+  const { styles, colors } = useAppTheme()
 
   const [form, setForm] = useState({
     current: '',
@@ -37,34 +38,37 @@ export default function ChangePasswordScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={GlobalStyles.containerWithPadding}>
+    <ScrollView contentContainerStyle={styles.containerWithPadding}>
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Senha atual"
+        placeholderTextColor={colors.textSecondary}
         secureTextEntry
         value={form.current}
         onChangeText={(v) => setForm({ ...form, current: v })}
       />
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Nova senha"
+        placeholderTextColor={colors.textSecondary}
         secureTextEntry
         value={form.new}
         onChangeText={(v) => setForm({ ...form, new: v })}
       />
       <TextInput
-        style={GlobalStyles.input}
+        style={styles.input}
         placeholder="Confirmar nova senha"
+        placeholderTextColor={colors.textSecondary}
         secureTextEntry
         value={form.confirm}
         onChangeText={(v) => setForm({ ...form, confirm: v })}
       />
 
       <TouchableOpacity
-        style={[GlobalStyles.button, { backgroundColor: Colors.primary }]}
+        style={[styles.button, { backgroundColor: colors.primary }]}
         onPress={handlePasswordChange}
       >
-        <Text style={GlobalStyles.buttonText}>Atualizar Senha</Text>
+        <Text style={styles.buttonText}>Atualizar Senha</Text>
       </TouchableOpacity>
     </ScrollView>
   )

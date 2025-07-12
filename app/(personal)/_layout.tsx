@@ -4,7 +4,7 @@ import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { AuthProvider, useAuth } from '@/context/authContext'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 function TabBarIcon(props: {
   name: React.ComponentProps<
@@ -31,6 +31,7 @@ function TabBarIcon(props: {
 export default function AdminLayoutNav() {
   const { getIsAuthenticated, isAdmin, isPersonal } = useAuth()
   const router = useRouter()
+  const { colors } = useAppTheme()
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -61,10 +62,10 @@ export default function AdminLayoutNav() {
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <Tabs
           screenOptions={{
-            tabBarActiveTintColor: Colors.primary,
-            tabBarInactiveTintColor: '#8E8E93',
+            tabBarActiveTintColor: colors.primary,
+            tabBarInactiveTintColor: colors.textSecondary,
             tabBarStyle: {
-              backgroundColor: '#F2F2F7',
+              backgroundColor: colors.background,
               borderTopWidth: 0,
               elevation: 0,
               shadowOpacity: 0,

@@ -13,7 +13,8 @@ import { useRouter } from 'expo-router'
 import { ProfileInfoRow } from '@/components/ProfileInfoRow'
 import { formatDate } from '@/utils/formatDate'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { GlobalStyles, Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
+import { useTheme } from '@/context/themeContext'
 
 interface ProfileScreenProps {
   title?: string
@@ -27,6 +28,11 @@ export default function ProfileScreen({
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
+  const { styles, colors } = useAppTheme()
+  const { isDark, setTheme } = useTheme()
+  const handleToggleTheme = () => {
+    setTheme(isDark ? 'light' : 'dark')
+  }
 
   const fetchUser = useCallback(async () => {
     try {
@@ -56,9 +62,9 @@ export default function ProfileScreen({
 
   if (loading) {
     return (
-      <View style={GlobalStyles.centered}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={[GlobalStyles.text, { marginTop: 10 }]}>
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.text, { marginTop: 10 }]}>
           Carregando perfil...
         </Text>
       </View>
@@ -67,17 +73,21 @@ export default function ProfileScreen({
 
   if (!user) {
     return (
-      <View style={GlobalStyles.centered}>
-        <Text style={GlobalStyles.text}>Usuário não encontrado.</Text>
+      <View style={styles.centered}>
+        <Text style={styles.text}>Usuário não encontrado.</Text>
       </View>
     )
   }
 
   return (
-    <ScrollView contentContainerStyle={GlobalStyles.containerWithPadding}>
-      <Text style={GlobalStyles.pageTitle}>{title}</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ padding: 20 }}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>{title}</Text>
 
-      <View style={GlobalStyles.card}>
+      <View style={styles.card}>
         <ProfileInfoRow label="Nome" value={user.nome} />
         <ProfileInfoRow label="Telefone" value={user.telefone} />
         <ProfileInfoRow label="Gênero" value={user.sexo} />
@@ -91,38 +101,52 @@ export default function ProfileScreen({
         <ProfileInfoRow label="Endereço" value={user.endereco} />
       </View>
 
-      <View style={GlobalStyles.actionButtonsContainer}>
+      <View style={styles.actionButtonsContainer}>
         <TouchableOpacity
-          style={GlobalStyles.primaryButton}
+          style={styles.primaryButton}
           onPress={() => router.push('/editProfile')}
         >
           <MaterialCommunityIcons
             name="account-edit"
             size={20}
-            color={Colors.textLight}
+            color={colors.textLight}
           />
-          <Text style={GlobalStyles.primaryButtonText}>Editar Perfil</Text>
+          <Text style={styles.primaryButtonText}>Editar Perfil</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={GlobalStyles.secondaryButton}
+          style={styles.secondaryButton}
           onPress={() => router.push('/changePassword')}
         >
           <MaterialCommunityIcons
             name="lock-reset"
             size={20}
-            color={Colors.textLight}
+            color={colors.textLight}
           />
-          <Text style={GlobalStyles.secondaryButtonText}>Trocar Senha</Text>
+          <Text style={styles.secondaryButtonText}>Trocar Senha</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={GlobalStyles.dangerButton} onPress={logout}>
+        <TouchableOpacity
+          style={styles.themeButton}
+          onPress={handleToggleTheme}
+        >
+          <MaterialCommunityIcons
+            name={isDark ? 'weather-sunny' : 'weather-night'}
+            size={20}
+            color={colors.textLight}
+          />
+          <Text style={styles.themeButtonText}>
+            {isDark ? 'Tema Claro' : 'Tema Escuro'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.dangerButton} onPress={logout}>
           <MaterialCommunityIcons
             name="logout"
             size={20}
-            color={Colors.textLight}
+            color={colors.textLight}
           />
-          <Text style={GlobalStyles.dangerButtonText}>Sair</Text>
+          <Text style={styles.dangerButtonText}>Sair</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

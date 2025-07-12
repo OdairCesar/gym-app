@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl } from 'react-native'
+import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
 import { useProducts } from '@/hooks/useProducts'
 import { Product } from '@/interfaces/Product'
 import ProductCard from '@/components/admin/ProductCard'
@@ -10,7 +10,7 @@ import GenericFilterModal, {
   FilterField,
 } from '@/components/common/GenericFilterModal'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
-import { GlobalStyles, Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface FilterState {
   nome: string
@@ -29,6 +29,20 @@ export default function ProductsScreen() {
     deleteProduct: deleteProductHook,
     filterProducts,
   } = useProducts()
+
+  const { colors } = useAppTheme()
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    list: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+  })
 
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [refreshing, setRefreshing] = useState(false)
@@ -300,7 +314,7 @@ export default function ProductsScreen() {
     {
       icon: 'filter',
       onPress: () => setFilterModalVisible(true),
-      color: Colors.primary,
+      color: colors.primary,
     },
     {
       icon: 'plus',
@@ -308,7 +322,7 @@ export default function ProductsScreen() {
         resetForm()
         setModalVisible(true)
       },
-      color: Colors.primary,
+      color: colors.primary,
     },
   ]
 
@@ -321,7 +335,7 @@ export default function ProductsScreen() {
   )
 
   return (
-    <View style={GlobalStyles.container}>
+    <View style={styles.container}>
       <PageHeader title="Gerenciar Produtos" buttons={headerButtons} />
 
       <FlatList
@@ -331,7 +345,7 @@ export default function ProductsScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={GlobalStyles.list}
+        style={styles.list}
         showsVerticalScrollIndicator={false}
       />
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl } from 'react-native'
+import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
 import { useDiets } from '@/hooks/useDiets'
 import { useUsers } from '@/hooks/useUsers'
 import { IDiet, IMeal } from '@/interfaces/Diet'
@@ -10,7 +10,7 @@ import GenericFilterModal, {
 } from '@/components/common/GenericFilterModal'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
 import DietCard from '@/components/common/DietCard'
-import { GlobalStyles, Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface FilterState {
   nome: string
@@ -307,11 +307,25 @@ export default function DietsScreen() {
     },
   ]
 
+  const { colors } = useAppTheme()
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    list: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+  })
+
   const headerButtons: HeaderButton[] = [
     {
       icon: 'filter',
       onPress: () => setFilterModalVisible(true),
-      color: Colors.primary,
+      color: colors.primary,
     },
     {
       icon: 'plus',
@@ -319,7 +333,7 @@ export default function DietsScreen() {
         resetForm()
         setModalVisible(true)
       },
-      color: Colors.primary,
+      color: colors.primary,
     },
   ]
 
@@ -334,7 +348,7 @@ export default function DietsScreen() {
   )
 
   return (
-    <View style={GlobalStyles.container}>
+    <View style={styles.container}>
       <PageHeader title="Gerenciar Dietas" buttons={headerButtons} />
 
       <FlatList
@@ -344,7 +358,7 @@ export default function DietsScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={GlobalStyles.list}
+        style={styles.list}
         showsVerticalScrollIndicator={false}
       />
 

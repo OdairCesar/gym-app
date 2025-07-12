@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Exercise } from '@/interfaces/Exercise'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface ExerciseListProps {
   exercises: Exercise[]
@@ -17,6 +17,75 @@ export default function ExerciseList({
   onRemove,
   onEdit,
 }: ExerciseListProps) {
+  const { colors } = useAppTheme()
+
+  const styles = StyleSheet.create({
+    container: {
+      marginVertical: 12,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    addButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+      gap: 4,
+    },
+    addButtonText: {
+      color: colors.textLight,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+      textAlign: 'center',
+      paddingVertical: 16,
+    },
+    exerciseItem: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 8,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    exerciseInfo: {
+      flex: 1,
+    },
+    exerciseName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    exerciseDetails: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    exerciseActions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    actionButton: {
+      padding: 4,
+    },
+  })
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -25,7 +94,7 @@ export default function ExerciseList({
           <MaterialCommunityIcons
             name="plus"
             size={20}
-            color={Colors.textLight}
+            color={colors.textLight}
           />
           <Text style={styles.addButtonText}>Adicionar</Text>
         </TouchableOpacity>
@@ -55,7 +124,7 @@ export default function ExerciseList({
                   <MaterialCommunityIcons
                     name="pencil"
                     size={16}
-                    color={Colors.primary}
+                    color={colors.primary}
                   />
                 </TouchableOpacity>
               )}
@@ -66,7 +135,7 @@ export default function ExerciseList({
                 <MaterialCommunityIcons
                   name="delete"
                   size={16}
-                  color="#FF3B30"
+                  color={colors.danger}
                 />
               </TouchableOpacity>
             </View>
@@ -76,70 +145,3 @@ export default function ExerciseList({
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    gap: 4,
-  },
-  addButtonText: {
-    color: Colors.textLight,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#8E8E93',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    paddingVertical: 16,
-  },
-  exerciseItem: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 2,
-  },
-  exerciseDetails: {
-    fontSize: 12,
-    color: '#6C7B7F',
-  },
-  exerciseActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    padding: 4,
-  },
-})

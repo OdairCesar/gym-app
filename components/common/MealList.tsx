@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import { IMeal } from '@/interfaces/Diet'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface MealListProps {
   meals: IMeal[]
@@ -11,6 +11,136 @@ interface MealListProps {
 }
 
 export default function MealList({ meals, onAdd, onRemove }: MealListProps) {
+  const { colors } = useAppTheme()
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    addButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    addButtonText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textLight,
+      marginLeft: 4,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 32,
+    },
+    emptyText: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      marginTop: 16,
+      textAlign: 'center',
+    },
+    emptySubtext: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 8,
+      textAlign: 'center',
+      opacity: 0.7,
+    },
+    list: {
+      flex: 1,
+    },
+    mealItem: {
+      backgroundColor: colors.backgroundSecondary,
+      marginVertical: 4,
+      borderRadius: 12,
+      borderLeftWidth: 4,
+      borderLeftColor: colors.primary,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    mealContent: {
+      padding: 16,
+    },
+    mealHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    mealName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      flex: 1,
+    },
+    timeContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primaryLight,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    mealTime: {
+      fontSize: 12,
+      color: colors.primary,
+      marginLeft: 4,
+      fontWeight: '500',
+    },
+    mealDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+      marginBottom: 8,
+    },
+    removeButton: {
+      position: 'absolute',
+      bottom: 8,
+      right: 8,
+      backgroundColor: colors.dangerLight,
+      borderRadius: 16,
+      padding: 4,
+    },
+    foodsContainer: {
+      marginTop: 8,
+    },
+    foodsTitle: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    foodsList: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+    },
+  })
+
   const renderMealItem = ({ item, index }: { item: IMeal; index: number }) => (
     <View style={styles.mealItem}>
       <View style={styles.mealContent}>
@@ -54,7 +184,7 @@ export default function MealList({ meals, onAdd, onRemove }: MealListProps) {
       <View style={styles.header}>
         <Text style={styles.title}>Refeições ({meals.length})</Text>
         <TouchableOpacity style={styles.addButton} onPress={onAdd}>
-          <MaterialIcons name="add" size={20} color={Colors.textLight} />
+          <MaterialIcons name="add" size={20} color={colors.textLight} />
           <Text style={styles.addButtonText}>Adicionar</Text>
         </TouchableOpacity>
       </View>
@@ -79,116 +209,3 @@ export default function MealList({ meals, onAdd, onRemove }: MealListProps) {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  addButtonText: {
-    fontSize: 14,
-    color: Colors.textLight,
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 32,
-    backgroundColor: '#F9F9F9',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E1E1E1',
-    borderStyle: 'dashed',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#8E8E93',
-    fontWeight: '500',
-    marginTop: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#C7C7CC',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  list: {
-    // Removido maxHeight para permitir scroll completo
-  },
-  mealItem: {
-    flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.primary,
-  },
-  mealContent: {
-    flex: 1,
-  },
-  mealHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  mealName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000000',
-    flex: 1,
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  mealTime: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
-  },
-  mealDescription: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginBottom: 6,
-    lineHeight: 16,
-  },
-  foodsContainer: {
-    marginTop: 4,
-  },
-  foodsTitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.primary,
-    marginBottom: 2,
-  },
-  foodsList: {
-    fontSize: 12,
-    color: '#333',
-    lineHeight: 16,
-  },
-  removeButton: {
-    padding: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-})

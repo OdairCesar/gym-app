@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Training } from '@/interfaces/Training'
 import { User } from '@/interfaces/User'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface TrainingCardProps {
   training: Training
@@ -20,6 +20,8 @@ export default function TrainingCard({
   onEdit,
   onDelete,
 }: TrainingCardProps) {
+  const { colors } = useAppTheme()
+
   const personalName =
     personals.find((p) => p._id === training.treinador)?.nome ||
     'Personal não encontrado'
@@ -27,20 +29,62 @@ export default function TrainingCard({
     clients.find((c) => c._id === training.user)?.nome ||
     'Cliente não encontrado'
 
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: 16,
+      marginVertical: 4,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    trainingInfo: {
+      flex: 1,
+    },
+    trainingName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    trainingDetail: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 2,
+    },
+    actionButtonGroup: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    actionButton: {
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: colors.background,
+    },
+  })
+
   return (
-    <View style={styles.trainingCard}>
+    <View style={styles.card}>
       <View style={styles.trainingInfo}>
         <Text style={styles.trainingName}>{training.nome}</Text>
-        <Text style={styles.trainingDetails}>Cliente: {clientName}</Text>
-        <Text style={styles.trainingDetails}>Personal: {personalName}</Text>
-        <Text style={styles.trainingDetails}>
+        <Text style={styles.trainingDetail}>Cliente: {clientName}</Text>
+        <Text style={styles.trainingDetail}>Personal: {personalName}</Text>
+        <Text style={styles.trainingDetail}>
           Exercícios: {training.exercicios?.length || 0}
         </Text>
-        <Text style={styles.trainingDate}>
+        <Text style={styles.trainingDetail}>
           Criado em: {new Date(training.createdAt).toLocaleDateString('pt-BR')}
         </Text>
       </View>
-      <View style={styles.trainingActions}>
+      <View style={styles.actionButtonGroup}>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onEdit(training)}
@@ -48,7 +92,7 @@ export default function TrainingCard({
           <MaterialCommunityIcons
             name="pencil"
             size={20}
-            color={Colors.primary}
+            color={colors.primary}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -58,53 +102,10 @@ export default function TrainingCard({
           <MaterialCommunityIcons
             name="delete"
             size={20}
-            color={Colors.danger}
+            color={colors.danger}
           />
         </TouchableOpacity>
       </View>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  trainingCard: {
-    backgroundColor: Colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 6,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  trainingInfo: {
-    flex: 1,
-  },
-  trainingName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  trainingDetails: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  trainingDate: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  trainingActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    padding: 8,
-  },
-})

@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { Colors } from '@/styles/globalStyles'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 export interface HeaderButton {
   icon: string
@@ -15,15 +15,44 @@ interface PageHeaderProps {
 }
 
 export default function PageHeader({ title, buttons = [] }: PageHeaderProps) {
+  const { colors } = useAppTheme()
+
+  const styles = StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    actionButtonGroup: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    actionButton: {
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: colors.background,
+    },
+  })
+
   return (
     <View style={styles.header}>
       <Text style={styles.title}>{title}</Text>
       {buttons.length > 0 && (
-        <View style={styles.headerActions}>
+        <View style={styles.actionButtonGroup}>
           {buttons.map((button, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.headerButton}
+              style={styles.actionButton}
               onPress={button.onPress}
             >
               <MaterialCommunityIcons
@@ -31,7 +60,7 @@ export default function PageHeader({ title, buttons = [] }: PageHeaderProps) {
                   button.icon as keyof typeof MaterialCommunityIcons.glyphMap
                 }
                 size={24}
-                color={button.color || Colors.primary}
+                color={button.color || colors.primary}
               />
             </TouchableOpacity>
           ))}
@@ -40,28 +69,3 @@ export default function PageHeader({ title, buttons = [] }: PageHeaderProps) {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  headerButton: {
-    padding: 8,
-  },
-})
