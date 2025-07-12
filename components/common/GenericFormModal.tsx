@@ -63,7 +63,8 @@ export default function GenericFormModal({
         return (
           <View key={field.key} style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {field.label} {field.required && '*'}
+              {field.label}
+              {field.required && ' *'}
             </Text>
             <TextInput
               style={styles.input}
@@ -82,7 +83,8 @@ export default function GenericFormModal({
         return (
           <View key={field.key} style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {field.label} {field.required && '*'}
+              {field.label}
+              {field.required && ' *'}
             </Text>
             <View style={styles.pickerContainer}>
               <Picker
@@ -112,7 +114,8 @@ export default function GenericFormModal({
         return (
           <View key={field.key} style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
-              {field.label} {field.required && '*'}
+              {field.label}
+              {field.required && ' *'}
             </Text>
             <View style={GlobalStyles.radioGroup}>
               {field.options?.map((option) => (
@@ -167,7 +170,6 @@ export default function GenericFormModal({
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      {' '}
       <SafeAreaView style={GlobalStyles.modalContainer}>
         <View style={GlobalStyles.modalHeader}>
           <TouchableOpacity onPress={onClose}>
