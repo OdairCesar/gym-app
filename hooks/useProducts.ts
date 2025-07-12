@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { Product } from '@/interfaces/Product'
 import { productService } from '@/services/productService'
 import { useApi } from './useApi'
+import { ENV } from '@/constants/environment'
 
 interface UseProductsReturn {
   // Estados
@@ -59,7 +60,7 @@ export const useProducts = (): UseProductsReturn => {
       const result = await executeWithAuth(
         (token) => productService.createProduct(productData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Produto criado com sucesso',
           errorMessage: 'Falha ao criar produto',
         },
@@ -83,7 +84,7 @@ export const useProducts = (): UseProductsReturn => {
       const result = await executeWithAuth(
         (token) => productService.updateProduct(productId, productData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Produto atualizado com sucesso',
           errorMessage: 'Falha ao atualizar produto',
         },
@@ -104,7 +105,7 @@ export const useProducts = (): UseProductsReturn => {
       const result = await executeWithAuth(
         (token) => productService.deleteProduct(productId, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Produto deletado com sucesso',
           errorMessage: 'Falha ao deletar produto',
         },

@@ -3,6 +3,7 @@ import { useAuth } from '@/context/authContext'
 import { User } from '@/interfaces/User'
 import { userService } from '@/services/userService'
 import { useApi } from './useApi'
+import { ENV } from '@/constants/environment'
 
 interface UseUsersReturn {
   // Estados
@@ -131,7 +132,7 @@ export const useUsers = (): UseUsersReturn => {
       const result = await executeWithAuth(
         (token) => userService.createUser(userData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: false,
           successMessage: 'Usuário criado com sucesso',
           errorMessage: 'Falha ao criar usuário',
         },
@@ -152,7 +153,7 @@ export const useUsers = (): UseUsersReturn => {
       const result = await executeWithAuth(
         (token) => userService.updateUser(userId, userData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: false,
           successMessage: 'Usuário atualizado com sucesso',
           errorMessage: 'Falha ao atualizar usuário',
         },
@@ -173,7 +174,7 @@ export const useUsers = (): UseUsersReturn => {
       const result = await executeWithAuth(
         (token) => userService.deleteUser(userId, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: false,
           successMessage: 'Usuário deletado com sucesso',
           errorMessage: 'Falha ao deletar usuário',
         },
@@ -198,7 +199,7 @@ export const useUsers = (): UseUsersReturn => {
       const result = await executeWithAuth(
         (token) => userService.assignDietToUser(clientId, dietId, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Dieta atribuída ao cliente com sucesso',
           errorMessage: 'Falha ao atribuir dieta',
         },
@@ -220,7 +221,7 @@ export const useUsers = (): UseUsersReturn => {
         (token) =>
           userService.assignTrainingToUser(clientId, trainingId, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Treino atribuído ao cliente com sucesso',
           errorMessage: 'Falha ao atribuir treino',
         },

@@ -4,8 +4,8 @@
  */
 
 // Base URL da API
-export const API_BASE_URL = 'https://gym-api-24p5.onrender.com'
-// export const API_BASE_URL = 'http://192.168.1.93:8844'
+// export const API_BASE_URL = 'https://gym-api-24p5.onrender.com'
+export const API_BASE_URL = 'http://192.168.1.93:8844'
 
 // Endpoints da API
 export const API_ENDPOINTS = {

@@ -9,6 +9,7 @@ import {
   ChangePasswordRequest,
 } from '@/services/authService'
 import { User } from '@/interfaces/User'
+import { ENV } from '@/constants/environment'
 
 export const useAuth = () => {
   const router = useRouter()
@@ -19,7 +20,7 @@ export const useAuth = () => {
       const result = await executeWithoutAuth(
         () => authService.login(credentials),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Login realizado com sucesso',
           errorMessage: 'Credenciais inválidas',
         },
@@ -42,7 +43,7 @@ export const useAuth = () => {
       const result = await executeWithoutAuth(
         () => authService.register(userData),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Usuário registrado com sucesso',
           errorMessage: 'Erro ao registrar usuário',
         },
@@ -63,7 +64,7 @@ export const useAuth = () => {
       const result = await executeWithAuth(
         (token) => authService.changePassword(passwordData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Senha alterada com sucesso',
           errorMessage: 'Erro ao alterar senha',
         },
@@ -79,7 +80,7 @@ export const useAuth = () => {
       const result = await executeWithAuth(
         (token) => authService.updateCurrentUser(userData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Perfil atualizado com sucesso',
           errorMessage: 'Erro ao atualizar perfil',
         },

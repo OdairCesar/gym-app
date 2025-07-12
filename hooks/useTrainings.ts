@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { Training } from '@/interfaces/Training'
 import { trainingService } from '@/services/trainingService'
 import { useApi } from './useApi'
+import { ENV } from '@/constants/environment'
 
 interface UseTrainingsReturn {
   // Estados
@@ -82,7 +83,7 @@ export const useTrainings = (): UseTrainingsReturn => {
       const result = await executeWithAuth(
         (token) => trainingService.createTraining(trainingData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Treino criado com sucesso',
           errorMessage: 'Falha ao criar treino',
         },
@@ -107,7 +108,7 @@ export const useTrainings = (): UseTrainingsReturn => {
         (token) =>
           trainingService.updateTraining(trainingId, trainingData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Treino atualizado com sucesso',
           errorMessage: 'Falha ao atualizar treino',
         },
@@ -128,7 +129,7 @@ export const useTrainings = (): UseTrainingsReturn => {
       const result = await executeWithAuth(
         (token) => trainingService.deleteTraining(trainingId, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Treino deletado com sucesso',
           errorMessage: 'Falha ao deletar treino',
         },

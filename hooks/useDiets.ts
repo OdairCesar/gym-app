@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { IDiet } from '@/interfaces/Diet'
 import { dietService } from '@/services/dietService'
 import { useApi } from './useApi'
+import { ENV } from '@/constants/environment'
 
 interface UseDietsReturn {
   // Estados
@@ -78,7 +79,7 @@ export const useDiets = (): UseDietsReturn => {
       const result = await executeWithAuth(
         (token) => dietService.createDiet(dietData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Dieta criada com sucesso',
           errorMessage: 'Falha ao criar dieta',
         },
@@ -99,7 +100,7 @@ export const useDiets = (): UseDietsReturn => {
       const result = await executeWithAuth(
         (token) => dietService.updateDiet(dietId, dietData, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Dieta atualizada com sucesso',
           errorMessage: 'Falha ao atualizar dieta',
         },
@@ -120,7 +121,7 @@ export const useDiets = (): UseDietsReturn => {
       const result = await executeWithAuth(
         (token) => dietService.deleteDiet(dietId, token),
         {
-          showSuccessAlert: true,
+          showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Dieta deletada com sucesso',
           errorMessage: 'Falha ao deletar dieta',
         },

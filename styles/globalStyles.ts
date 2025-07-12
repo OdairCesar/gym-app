@@ -464,4 +464,74 @@ export const GlobalStyles = StyleSheet.create({
     color: Colors.text,
     marginLeft: Spacing.sm,
   },
+
+  // Estilos para telas de perfil
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  pageTitle: {
+    fontSize: FontSizes.xxl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.xxl,
+  },
+
+  actionButtonsContainer: {
+    gap: Spacing.md,
+  },
+
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    ...Shadows.sm,
+  },
+
+  primaryButtonText: {
+    color: Colors.textLight,
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+  },
+
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.textSecondary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    ...Shadows.sm,
+  },
+
+  secondaryButtonText: {
+    color: Colors.textLight,
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+  },
+
+  dangerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.error,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    ...Shadows.sm,
+  },
+
+  dangerButtonText: {
+    color: Colors.textLight,
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+  },
 })
