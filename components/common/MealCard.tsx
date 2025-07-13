@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 
+import { useAppTheme } from '@/hooks/useAppTheme'
 import { IMeal } from '@/interfaces/Diet'
 
 interface MealCardProps {
@@ -9,32 +10,56 @@ interface MealCardProps {
 }
 
 export function MealCard({ meal }: MealCardProps) {
+  const { colors } = useAppTheme()
+
   return (
-    <View style={styles.mealCard}>
+    <View
+      style={[
+        styles.mealCard,
+        {
+          backgroundColor: colors.backgroundSecondary,
+          borderColor: colors.border,
+        },
+      ]}
+    >
       <View style={styles.mealHeader}>
-        <Text style={styles.mealName}>{meal.nome}</Text>
+        <Text style={[styles.mealName, { color: colors.text }]}>
+          {meal.nome}
+        </Text>
         {meal.horario && (
           <View style={styles.timeContainer}>
-            <MaterialIcons name="schedule" size={16} color="#666" />
-            <Text style={styles.mealTime}>{meal.horario}</Text>
+            <MaterialIcons
+              name="schedule"
+              size={16}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.mealTime, { color: colors.textSecondary }]}>
+              {meal.horario}
+            </Text>
           </View>
         )}
       </View>
 
       {meal.descricao && (
-        <Text style={styles.mealDescription}>{meal.descricao}</Text>
+        <Text style={[styles.mealDescription, { color: colors.textSecondary }]}>
+          {meal.descricao}
+        </Text>
       )}
 
       <View style={styles.foodsContainer}>
-        <Text style={styles.foodsTitle}>Alimentos:</Text>
+        <Text style={[styles.foodsTitle, { color: colors.text }]}>
+          Alimentos:
+        </Text>
         {meal.alimentos.map((alimento, index) => (
           <View key={index} style={styles.foodItem}>
             <MaterialIcons
               name="fiber-manual-record"
               size={8}
-              color="#0a84ff"
+              color={colors.primary}
             />
-            <Text style={styles.foodText}>{alimento}</Text>
+            <Text style={[styles.foodText, { color: colors.textSecondary }]}>
+              {alimento}
+            </Text>
           </View>
         ))}
       </View>
@@ -44,12 +69,10 @@ export function MealCard({ meal }: MealCardProps) {
 
 const styles = StyleSheet.create({
   mealCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -65,7 +88,6 @@ const styles = StyleSheet.create({
   mealName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     flex: 1,
   },
   timeContainer: {
@@ -75,12 +97,10 @@ const styles = StyleSheet.create({
   },
   mealTime: {
     fontSize: 14,
-    color: '#666',
     fontWeight: '500',
   },
   mealDescription: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -90,7 +110,6 @@ const styles = StyleSheet.create({
   foodsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 8,
   },
   foodItem: {
@@ -101,7 +120,6 @@ const styles = StyleSheet.create({
   },
   foodText: {
     fontSize: 14,
-    color: '#555',
     flex: 1,
   },
 })

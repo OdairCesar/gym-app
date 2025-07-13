@@ -3,6 +3,7 @@ import { Tabs, useRouter } from 'expo-router'
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { AuthProvider, useAuth } from '@/context/authContext'
+import { useAppTheme } from '@/hooks/useAppTheme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 function TabBarIcon(props: {
@@ -29,6 +30,7 @@ function TabBarIcon(props: {
 
 export default function ClientLayoutNav() {
   const { getIsAuthenticated, isAdmin, isPersonal } = useAuth()
+  const { colors } = useAppTheme()
   const router = useRouter()
 
   useEffect(() => {
@@ -61,10 +63,10 @@ export default function ClientLayoutNav() {
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <Tabs
           screenOptions={{
-            tabBarActiveTintColor: '#3b82f6',
-            tabBarInactiveTintColor: '#8E8E93',
+            tabBarActiveTintColor: colors.primary,
+            tabBarInactiveTintColor: colors.textSecondary,
             tabBarStyle: {
-              backgroundColor: '#F2F2F7',
+              backgroundColor: colors.backgroundSecondary,
               borderTopWidth: 0,
               elevation: 0,
               shadowOpacity: 0,

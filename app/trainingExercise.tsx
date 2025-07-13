@@ -31,7 +31,7 @@ type Filter = 'all' | 'completed' | 'skipped'
 
 export default function TrainingExerciseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const { getTrainingById } = useTrainings()
+  const { fetchTrainingById } = useTrainings()
   const router = useRouter()
   const navigation = useNavigation()
   const { styles: globalStyles, colors } = useAppTheme()
@@ -54,8 +54,8 @@ export default function TrainingExerciseScreen() {
       setLoading(true)
       setError(null)
 
-      // Busca o treino pelo ID usando o hook
-      const foundTraining = getTrainingById(id)
+      // Busca o treino pelo ID usando a API
+      const foundTraining = await fetchTrainingById(id)
 
       if (foundTraining) {
         setTraining(foundTraining)
@@ -78,7 +78,7 @@ export default function TrainingExerciseScreen() {
 
     setCompletedExercises(completedRaw ? JSON.parse(completedRaw) : [])
     setSkippedExercises(skippedRaw ? JSON.parse(skippedRaw) : [])
-  }, [id, getTrainingById, router])
+  }, [id, fetchTrainingById, router])
 
   useEffect(() => {
     if (id) fetchTraining()

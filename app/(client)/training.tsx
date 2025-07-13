@@ -10,11 +10,13 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router'
 
 import { useTrainings } from '@/hooks/useTrainings'
+import { useAppTheme } from '@/hooks/useAppTheme'
 import { Training } from '@/interfaces/Training'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 export default function TrainingScreen() {
   const { fetchUserTraining, loading } = useTrainings()
+  const { colors } = useAppTheme()
   const [userTrainings, setUserTrainings] = useState<Training[]>([])
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -43,21 +45,27 @@ export default function TrainingScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0a84ff" />
-        <Text style={{ marginTop: 8 }}>Carregando treinos...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ marginTop: 8, color: colors.text }}>
+          Carregando treinos...
+        </Text>
       </View>
     )
   }
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <MaterialCommunityIcons name="dumbbell" size={48} color="#d9534f" />
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <MaterialCommunityIcons
+          name="dumbbell"
+          size={48}
+          color={colors.error}
+        />
+        <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         <TouchableOpacity
           onPress={loadUserTrainings}
-          style={styles.retryButton}
+          style={[styles.retryButton, { backgroundColor: colors.primary }]}
         >
           <Text style={styles.retryText}>Tentar novamente</Text>
         </TouchableOpacity>
@@ -67,31 +75,45 @@ export default function TrainingScreen() {
 
   if (userTrainings.length === 0) {
     return (
-      <View style={styles.centered}>
-        <Text>Nenhum treino encontrado.</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.text }}>Nenhum treino encontrado.</Text>
       </View>
     )
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         style={{ padding: 20 }}
         data={userTrainings}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.title}>{item.nome}</Text>
-            <Text style={styles.description}>Coach: {item.treinador}</Text>
-            <Text style={styles.description}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.backgroundSecondary,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.title, { color: colors.text }]}>
+              {item.nome}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
+              Coach: {item.treinador}
+            </Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
               Criado em: {new Date(item.createdAt).toLocaleDateString()}
             </Text>
-            <Text style={styles.description}>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
               Atualizado em: {new Date(item.updatedAt).toLocaleDateString()}
             </Text>
-            <Text style={styles.info}>ID: {item._id}</Text>
+            <Text style={[styles.info, { color: colors.textSecondary }]}>
+              ID: {item._id}
+            </Text>
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, { backgroundColor: colors.primary }]}
               onPress={() =>
                 router.push({
                   pathname: '/trainingExercise',
@@ -121,10 +143,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 8,
     marginBottom: 16,
-    backgroundColor: '#fff',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e8e8e8',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -139,7 +159,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   description: {
-    color: '#555',
+    fontSize: 14,
   },
   info: {
     position: 'absolute',
@@ -147,12 +167,10 @@ const styles = StyleSheet.create({
     top: 5,
     fontSize: 10,
     marginTop: 8,
-    color: '#eee',
     textAlign: 'right',
   },
   button: {
     marginTop: 12,
-    backgroundColor: '#0a84ff',
     paddingVertical: 10,
     borderRadius: 6,
     alignItems: 'center',
@@ -163,7 +181,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   errorText: {
-    color: '#d9534f', // vermelho suave, evoca erro mas sem ser agressivo
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
@@ -177,7 +194,6 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: '#0a84ff',
     borderRadius: 8,
   },
 })

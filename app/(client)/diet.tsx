@@ -12,11 +12,13 @@ import { useFocusEffect } from 'expo-router'
 import { MaterialIcons } from '@expo/vector-icons'
 
 import { useDiets } from '@/hooks/useDiets'
+import { useAppTheme } from '@/hooks/useAppTheme'
 import { IDiet, IMeal } from '@/interfaces/Diet'
-import { MealCard } from '@/components/MealCard'
+import { MealCard } from '@/components/common/MealCard'
 
 export default function DietScreen() {
   const { fetchUserDiet, loading } = useDiets()
+  const { colors } = useAppTheme()
   const [diet, setDiet] = useState<IDiet | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,19 +41,26 @@ export default function DietScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0a84ff" />
-        <Text style={styles.loadingText}>Carregando sua dieta...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>
+          Carregando sua dieta...
+        </Text>
       </View>
     )
   }
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <MaterialIcons name="restaurant" size={48} color="#d9534f" />
-        <Text style={styles.errorText}>⚠️ {error}</Text>
-        <TouchableOpacity onPress={loadUserDiet} style={styles.retryButton}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <MaterialIcons name="restaurant" size={48} color={colors.error} />
+        <Text style={[styles.errorText, { color: colors.error }]}>
+          ⚠️ {error}
+        </Text>
+        <TouchableOpacity
+          onPress={loadUserDiet}
+          style={[styles.retryButton, { backgroundColor: colors.primary }]}
+        >
           <Text style={styles.retryText}>Tentar novamente</Text>
         </TouchableOpacity>
       </View>
@@ -60,10 +69,12 @@ export default function DietScreen() {
 
   if (!diet) {
     return (
-      <View style={styles.centered}>
-        <MaterialIcons name="no-meals" size={48} color="#999" />
-        <Text style={styles.emptyText}>Nenhuma dieta encontrada</Text>
-        <Text style={styles.emptySubText}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <MaterialIcons name="no-meals" size={48} color={colors.textSecondary} />
+        <Text style={[styles.emptyText, { color: colors.text }]}>
+          Nenhuma dieta encontrada
+        </Text>
+        <Text style={[styles.emptySubText, { color: colors.textSecondary }]}>
           Consulte um nutricionista para criar sua dieta personalizada!
         </Text>
       </View>
@@ -73,14 +84,22 @@ export default function DietScreen() {
   const renderMeal = ({ item }: { item: IMeal }) => <MealCard meal={item} />
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{diet.nome}</Text>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <View
+        style={[styles.header, { backgroundColor: colors.backgroundSecondary }]}
+      >
+        <Text style={[styles.title, { color: colors.text }]}>{diet.nome}</Text>
         {diet.descricao && (
-          <Text style={styles.description}>{diet.descricao}</Text>
+          <Text style={[styles.description, { color: colors.textSecondary }]}>
+            {diet.descricao}
+          </Text>
         )}
         {diet.criador && (
-          <Text style={styles.nutritionist}>Criada por: {diet.criador}</Text>
+          <Text style={[styles.nutritionist, { color: colors.textSecondary }]}>
+            Criada por: {diet.criador}
+          </Text>
         )}
       </View>
 
@@ -88,8 +107,15 @@ export default function DietScreen() {
         diet.proteinas ||
         diet.carboidratos ||
         diet.gorduras) && (
-        <View style={styles.macrosContainer}>
-          <Text style={styles.macrosTitle}>Informações Nutricionais</Text>
+        <View
+          style={[
+            styles.macrosContainer,
+            { backgroundColor: colors.backgroundSecondary },
+          ]}
+        >
+          <Text style={[styles.macrosTitle, { color: colors.text }]}>
+            Informações Nutricionais
+          </Text>
           <View style={styles.macrosGrid}>
             {diet.calorias && (
               <View style={styles.macroItem}>
@@ -98,8 +124,14 @@ export default function DietScreen() {
                   size={24}
                   color="#ff6b35"
                 />
-                <Text style={styles.macroValue}>{diet.calorias}</Text>
-                <Text style={styles.macroLabel}>Calorias</Text>
+                <Text style={[styles.macroValue, { color: colors.text }]}>
+                  {diet.calorias}
+                </Text>
+                <Text
+                  style={[styles.macroLabel, { color: colors.textSecondary }]}
+                >
+                  Calorias
+                </Text>
               </View>
             )}
             {diet.proteinas && (
@@ -109,22 +141,40 @@ export default function DietScreen() {
                   size={24}
                   color="#28a745"
                 />
-                <Text style={styles.macroValue}>{diet.proteinas}g</Text>
-                <Text style={styles.macroLabel}>Proteínas</Text>
+                <Text style={[styles.macroValue, { color: colors.text }]}>
+                  {diet.proteinas}g
+                </Text>
+                <Text
+                  style={[styles.macroLabel, { color: colors.textSecondary }]}
+                >
+                  Proteínas
+                </Text>
               </View>
             )}
             {diet.carboidratos && (
               <View style={styles.macroItem}>
                 <MaterialIcons name="grain" size={24} color="#ffc107" />
-                <Text style={styles.macroValue}>{diet.carboidratos}g</Text>
-                <Text style={styles.macroLabel}>Carboidratos</Text>
+                <Text style={[styles.macroValue, { color: colors.text }]}>
+                  {diet.carboidratos}g
+                </Text>
+                <Text
+                  style={[styles.macroLabel, { color: colors.textSecondary }]}
+                >
+                  Carboidratos
+                </Text>
               </View>
             )}
             {diet.gorduras && (
               <View style={styles.macroItem}>
                 <MaterialIcons name="opacity" size={24} color="#17a2b8" />
-                <Text style={styles.macroValue}>{diet.gorduras}g</Text>
-                <Text style={styles.macroLabel}>Gorduras</Text>
+                <Text style={[styles.macroValue, { color: colors.text }]}>
+                  {diet.gorduras}g
+                </Text>
+                <Text
+                  style={[styles.macroLabel, { color: colors.textSecondary }]}
+                >
+                  Gorduras
+                </Text>
               </View>
             )}
           </View>
@@ -132,7 +182,9 @@ export default function DietScreen() {
       )}
 
       <View style={styles.mealsSection}>
-        <Text style={styles.sectionTitle}>Suas Refeições</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Suas Refeições
+        </Text>
         <FlatList
           data={diet.refeicoes}
           keyExtractor={(item, index) => `${item.nome}-${index}`}

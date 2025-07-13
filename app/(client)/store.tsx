@@ -12,11 +12,13 @@ import { useFocusEffect } from 'expo-router'
 import { MaterialIcons } from '@expo/vector-icons'
 
 import { useProducts } from '@/hooks/useProducts'
+import { useAppTheme } from '@/hooks/useAppTheme'
 import { Product } from '@/interfaces/Product'
-import { ProductCard } from '@/components/ProductCard'
+import { ProductCard } from '@/components/common/ProductCard'
 
 export default function StoreScreen() {
   const { products, loading, fetchProducts } = useProducts()
+  const { colors } = useAppTheme()
   const [refreshing, setRefreshing] = useState<boolean>(false)
 
   const onRefresh = async () => {
@@ -44,19 +46,23 @@ export default function StoreScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0a84ff" />
-        <Text style={styles.loadingText}>Carregando produtos...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>
+          Carregando produtos...
+        </Text>
       </View>
     )
   }
 
   if (products.length === 0) {
     return (
-      <View style={styles.centered}>
-        <MaterialIcons name="store" size={48} color="#999" />
-        <Text style={styles.emptyText}>Nenhum produto encontrado</Text>
-        <Text style={styles.emptySubText}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <MaterialIcons name="store" size={48} color={colors.textSecondary} />
+        <Text style={[styles.emptyText, { color: colors.text }]}>
+          Nenhum produto encontrado
+        </Text>
+        <Text style={[styles.emptySubText, { color: colors.textSecondary }]}>
           Produtos estarão disponíveis em breve!
         </Text>
       </View>
@@ -68,14 +74,19 @@ export default function StoreScreen() {
   )
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={products}
         keyExtractor={(item) => item._id}
         renderItem={renderProduct}
         contentContainerStyle={styles.listContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
         showsVerticalScrollIndicator={false}
         numColumns={2}
@@ -88,7 +99,6 @@ export default function StoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   listContainer: {
     padding: 16,
@@ -105,18 +115,15 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#666',
     marginTop: 12,
     textAlign: 'center',
   },
   emptySubText: {
     fontSize: 14,
-    color: '#999',
     marginTop: 8,
     textAlign: 'center',
   },

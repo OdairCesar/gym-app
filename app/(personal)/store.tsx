@@ -13,7 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons'
 
 import { useProducts } from '@/hooks/useProducts'
 import { Product } from '@/interfaces/Product'
-import { ProductCard } from '@/components/ProductCard'
+import { ProductCard } from '@/components/common/ProductCard'
 
 export default function StoreScreen() {
   const { products, loading, fetchProducts } = useProducts()

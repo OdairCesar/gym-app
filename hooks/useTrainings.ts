@@ -12,6 +12,7 @@ interface UseTrainingsReturn {
   // Funções
   fetchTrainings: () => Promise<void>
   fetchUserTraining: () => Promise<Training | null>
+  fetchTrainingById: (trainingId: string) => Promise<Training | null>
   createTraining: (trainingData: Partial<Training>) => Promise<boolean>
   updateTraining: (
     trainingId: string,
@@ -77,6 +78,29 @@ export const useTrainings = (): UseTrainingsReturn => {
       setLoading(false)
     }
   }, [executeWithAuth])
+
+  const fetchTrainingById = useCallback(
+    async (trainingId: string): Promise<Training | null> => {
+      try {
+        setLoading(true)
+        const result = await executeWithAuth(
+          (token) => trainingService.getTrainingByIdFromApi(trainingId, token),
+          {
+            showErrorAlert: true,
+            errorMessage: 'Falha ao carregar treino',
+          },
+        )
+
+        return (result as Training) || null
+      } catch (error) {
+        console.error('Erro ao carregar treino:', error)
+        return null
+      } finally {
+        setLoading(false)
+      }
+    },
+    [executeWithAuth],
+  )
 
   const createTraining = useCallback(
     async (trainingData: Partial<Training>): Promise<boolean> => {
@@ -190,6 +214,7 @@ export const useTrainings = (): UseTrainingsReturn => {
     // Funções
     fetchTrainings,
     fetchUserTraining,
+    fetchTrainingById,
     createTraining,
     updateTraining,
     deleteTraining,

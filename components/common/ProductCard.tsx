@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 
+import { useAppTheme } from '@/hooks/useAppTheme'
 import { Product } from '@/interfaces/Product'
 
 interface ProductCardProps {
@@ -17,6 +18,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onBuy }: ProductCardProps) {
+  const { colors } = useAppTheme()
+
   const handleBuyProduct = () => {
     Alert.alert(
       'Comprar Produto',
@@ -32,7 +35,15 @@ export function ProductCard({ product, onBuy }: ProductCardProps) {
   }
 
   return (
-    <View style={styles.productCard}>
+    <View
+      style={[
+        styles.productCard,
+        {
+          backgroundColor: colors.backgroundSecondary,
+          borderColor: colors.border,
+        },
+      ]}
+    >
       {product.imagem ? (
         <Image
           source={{ uri: product.imagem }}
@@ -40,24 +51,36 @@ export function ProductCard({ product, onBuy }: ProductCardProps) {
           alt={product.nome}
         />
       ) : (
-        <View style={styles.placeholderImage}>
-          <MaterialIcons name="image" size={40} color="#ccc" />
+        <View
+          style={[
+            styles.placeholderImage,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <MaterialIcons name="image" size={40} color={colors.textSecondary} />
         </View>
       )}
 
       <View style={styles.productInfo}>
-        <Text style={styles.productName}>{product.nome}</Text>
-        <Text style={styles.productCategory}>{product.categoria}</Text>
-        <Text style={styles.productDescription} numberOfLines={2}>
+        <Text style={[styles.productName, { color: colors.text }]}>
+          {product.nome}
+        </Text>
+        <Text style={[styles.productCategory, { color: colors.primary }]}>
+          {product.categoria}
+        </Text>
+        <Text
+          style={[styles.productDescription, { color: colors.textSecondary }]}
+          numberOfLines={2}
+        >
           {product.descricao}
         </Text>
 
         <View style={styles.productFooter}>
           <View style={styles.priceContainer}>
-            <Text style={styles.productPrice}>
+            <Text style={[styles.productPrice, { color: colors.success }]}>
               R$ {product.preco.toFixed(2)}
             </Text>
-            <Text style={styles.stockText}>
+            <Text style={[styles.stockText, { color: colors.textSecondary }]}>
               {product.estoque > 0
                 ? `${product.estoque} em estoque`
                 : 'Indisponível'}
@@ -67,7 +90,14 @@ export function ProductCard({ product, onBuy }: ProductCardProps) {
           <TouchableOpacity
             style={[
               styles.buyButton,
-              product.estoque === 0 && styles.buyButtonDisabled,
+              {
+                backgroundColor:
+                  product.estoque > 0 ? colors.primary : colors.background,
+              },
+              product.estoque === 0 && {
+                borderWidth: 1,
+                borderColor: colors.border,
+              },
             ]}
             onPress={handleBuyProduct}
             disabled={product.estoque === 0}
@@ -77,12 +107,14 @@ export function ProductCard({ product, onBuy }: ProductCardProps) {
                 product.estoque > 0 ? 'shopping-cart' : 'remove-shopping-cart'
               }
               size={20}
-              color={product.estoque > 0 ? '#fff' : '#999'}
+              color={product.estoque > 0 ? '#fff' : colors.textSecondary}
             />
             <Text
               style={[
                 styles.buyButtonText,
-                product.estoque === 0 && styles.buyButtonTextDisabled,
+                {
+                  color: product.estoque > 0 ? '#fff' : colors.textSecondary,
+                },
               ]}
             >
               {product.estoque > 0 ? 'Comprar' : 'Indisponível'}
@@ -96,7 +128,6 @@ export function ProductCard({ product, onBuy }: ProductCardProps) {
 
 const styles = StyleSheet.create({
   productCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: '#000',
@@ -106,6 +137,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     width: '48%',
     overflow: 'hidden',
+    borderWidth: 1,
   },
   productImage: {
     width: '100%',
@@ -115,7 +147,6 @@ const styles = StyleSheet.create({
   placeholderImage: {
     width: '100%',
     height: 120,
-    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -125,19 +156,16 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   productCategory: {
     fontSize: 12,
-    color: '#0a84ff',
     textTransform: 'uppercase',
     fontWeight: '600',
     marginBottom: 6,
   },
   productDescription: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -150,31 +178,21 @@ const styles = StyleSheet.create({
   productPrice: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#28a745',
     marginBottom: 2,
   },
   stockText: {
     fontSize: 12,
-    color: '#666',
   },
   buyButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0a84ff',
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
   },
-  buyButtonDisabled: {
-    backgroundColor: '#f0f0f0',
-  },
   buyButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  buyButtonTextDisabled: {
-    color: '#999',
   },
 })

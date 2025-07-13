@@ -1,33 +1,39 @@
 {
   "expo": {
-    "name": "gym",
+    "name": "Physical Academia - Seu App de Treino",
     "slug": "gym",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/physical-academia/ios/iTunesArtwork@2x.png",
     "scheme": "gym",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/physical-academia/android/ic_launcher-web.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/images/physical-academia/ios/AppIcon.appiconset"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/physical-academia/android/mipmap-hdpi/ic_launcher_foreground.png",
         "backgroundColor": "#ffffff"
       },
+      "icon": "./assets/images/physical-academia/android/mipmap-hdpi/ic_launcher.png",
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.gym"
+      "package": "com.anonymous.gym",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/physical-academia/android/ic_launcher-web.png"
     },
     "plugins": [
       "expo-router",
