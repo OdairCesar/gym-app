@@ -17,6 +17,7 @@ import { MaskedTextInput } from 'react-native-mask-text'
 
 import { useAuth } from '@/hooks/useAuth'
 import { formatDate } from '@/utils/formatDate'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -30,10 +31,12 @@ export default function Register() {
     profissao: '',
     endereco: '',
     isAdmin: false,
+    isPersonal: false,
     isActive: true,
   })
   const [showDatePicker, setShowDatePicker] = useState(false)
   const { register } = useAuth()
+  const { colors } = useAppTheme()
 
   const handleRegister = async () => {
     if (!form.nome || !form.email || !form.password) {
@@ -55,7 +58,11 @@ export default function Register() {
   const selectSexo = (value: string) => setForm({ ...form, sexo: value })
   const selectIsAdmin = (value: string) =>
     setForm({ ...form, isAdmin: value === 'S' })
+  const selectIsPersonal = (value: string) =>
+    setForm({ ...form, isPersonal: value === 'S' })
   const equalsIsAdmin = (value: string) => form.isAdmin === (value === 'S')
+  const equalsIsPersonal = (value: string) =>
+    form.isPersonal === (value === 'S')
 
   const parseDate = (dateString: string): Date => {
     const [day, month, year] = dateString.split('/').map(Number)
@@ -78,7 +85,7 @@ export default function Register() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={100}
     >
@@ -87,44 +94,80 @@ export default function Register() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Registre-se</Text>
-        <Text style={styles.description}>
+        <Text style={[styles.title, { color: colors.text }]}>Registre-se</Text>
+        <Text style={[styles.description, { color: colors.textSecondary }]}>
           Para usar o aplicativo é necessário que você se registre. Após o
           registro, você poderá acessar todas as funcionalidades do aplicativo.
         </Text>
 
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           placeholder="Nome"
           onChangeText={(value) => setForm({ ...form, nome: value })}
           value={form.nome}
           autoCapitalize="words"
+          placeholderTextColor={colors.textSecondary}
         />
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           placeholder="Email"
           onChangeText={(value) => setForm({ ...form, email: value })}
           value={form.email}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          placeholderTextColor={colors.textSecondary}
         />
 
-        <Text style={styles.hint}>Use pelo menos 6 caracteres</Text>
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>
+          Use pelo menos 6 caracteres
+        </Text>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           placeholder="Senha"
           secureTextEntry
           onChangeText={(value) => setForm({ ...form, password: value })}
           value={form.password}
+          placeholderTextColor={colors.textSecondary}
         />
 
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
           accessibilityRole="button"
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+            },
+          ]}
         >
-          <Text style={{ color: form.dataNascimento ? '#000' : '#aaa' }}>
+          <Text
+            style={{
+              color: form.dataNascimento ? colors.text : colors.textSecondary,
+            }}
+          >
             {form.dataNascimento || 'Data de Nascimento'}
           </Text>
         </TouchableOpacity>
@@ -144,30 +187,53 @@ export default function Register() {
           mask="(99) 99999-9999"
           placeholder="Telefone"
           keyboardType="phone-pad"
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           onChangeText={(text, raw) => setForm({ ...form, telefone: raw })}
           value={form.telefone}
+          placeholderTextColor={colors.textSecondary}
         />
 
         <MaskedTextInput
           mask="999.999.999-99"
           placeholder="CPF"
           keyboardType="numeric"
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           onChangeText={(text, raw) => setForm({ ...form, cpf: raw })}
           value={form.cpf}
           maxLength={14}
+          placeholderTextColor={colors.textSecondary}
         />
 
         <View style={styles.labelContainer}>
-          <Text style={styles.label}>Sexo:</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Sexo:</Text>
           <View style={styles.radioContainer}>
             {['M', 'F', 'O'].map((sexo) => (
               <TouchableOpacity
                 key={sexo}
                 style={[
                   styles.radioButton,
-                  form.sexo === sexo && styles.radioButtonSelected,
+                  {
+                    borderColor: colors.border,
+                    backgroundColor: colors.backgroundSecondary,
+                  },
+                  form.sexo === sexo && {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                  },
                 ]}
                 onPress={() => selectSexo(sexo)}
                 activeOpacity={0.8}
@@ -176,7 +242,8 @@ export default function Register() {
                 <Text
                   style={[
                     styles.radioButtonText,
-                    form.sexo === sexo && styles.radioButtonTextSelected,
+                    { color: colors.textSecondary },
+                    form.sexo === sexo && { color: '#fff', fontWeight: 'bold' },
                   ]}
                 >
                   {sexo === 'M'
@@ -191,27 +258,52 @@ export default function Register() {
         </View>
 
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           placeholder="Profissão"
           onChangeText={(value) => setForm({ ...form, profissao: value })}
           value={form.profissao}
+          placeholderTextColor={colors.textSecondary}
         />
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           placeholder="Endereço"
           onChangeText={(value) => setForm({ ...form, endereco: value })}
           value={form.endereco}
+          placeholderTextColor={colors.textSecondary}
         />
 
         <View style={styles.labelContainer}>
-          <Text style={styles.label}>É Administrador:</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            É Administrador:
+          </Text>
           <View style={styles.radioContainer}>
             {['S', 'N'].map((isAdmin) => (
               <TouchableOpacity
                 key={isAdmin}
                 style={[
                   styles.radioButton,
-                  equalsIsAdmin(isAdmin) && styles.radioButtonSelected,
+                  {
+                    borderColor: colors.border,
+                    backgroundColor: colors.backgroundSecondary,
+                  },
+                  equalsIsAdmin(isAdmin) && {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                  },
                 ]}
                 onPress={() => selectIsAdmin(isAdmin)}
                 accessibilityRole="button"
@@ -219,7 +311,11 @@ export default function Register() {
                 <Text
                   style={[
                     styles.radioButtonText,
-                    equalsIsAdmin(isAdmin) && styles.radioButtonTextSelected,
+                    { color: colors.textSecondary },
+                    equalsIsAdmin(isAdmin) && {
+                      color: '#fff',
+                      fontWeight: 'bold',
+                    },
                   ]}
                 >
                   {isAdmin === 'S' ? 'Sim' : 'Não'}
@@ -229,15 +325,57 @@ export default function Register() {
           </View>
         </View>
 
+        <View style={styles.labelContainer}>
+          <Text style={[styles.label, { color: colors.text }]}>
+            É Personal Trainer:
+          </Text>
+          <View style={styles.radioContainer}>
+            {['S', 'N'].map((isPersonal) => (
+              <TouchableOpacity
+                key={isPersonal}
+                style={[
+                  styles.radioButton,
+                  {
+                    borderColor: colors.border,
+                    backgroundColor: colors.backgroundSecondary,
+                  },
+                  equalsIsPersonal(isPersonal) && {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                  },
+                ]}
+                onPress={() => selectIsPersonal(isPersonal)}
+                accessibilityRole="button"
+              >
+                <Text
+                  style={[
+                    styles.radioButtonText,
+                    { color: colors.textSecondary },
+                    equalsIsPersonal(isPersonal) && {
+                      color: '#fff',
+                      fontWeight: 'bold',
+                    },
+                  ]}
+                >
+                  {isPersonal === 'S' ? 'Sim' : 'Não'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, { backgroundColor: colors.primary }]}
           onPress={handleRegister}
           accessibilityRole="button"
         >
           <Text style={styles.buttonText}>Registrar</Text>
         </TouchableOpacity>
 
-        <Link href="/(auth)/login" style={styles.link}>
+        <Link
+          href="/(auth)/login"
+          style={[styles.link, { color: colors.primary }]}
+        >
           Já estou cadastrado
         </Link>
       </ScrollView>
@@ -248,6 +386,7 @@ export default function Register() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 28,
+    paddingVertical: 20,
     gap: 14,
     alignItems: 'stretch',
   },
@@ -255,19 +394,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
-    backgroundColor: '#fff',
     marginBottom: 10,
   },
   hint: {
     fontSize: 12,
-    color: '#888',
     marginBottom: -8,
     marginTop: -8,
   },
   button: {
-    backgroundColor: '#007bff',
     paddingVertical: 14,
     borderRadius: 8,
     marginTop: 12,
@@ -283,7 +418,6 @@ const styles = StyleSheet.create({
     padding: 15,
     fontSize: 14,
     textAlign: 'center',
-    color: '#007bff',
     fontWeight: '500',
   },
   title: {
@@ -293,13 +427,11 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 12,
-    color: '#444',
     textAlign: 'center',
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
   },
   labelContainer: {
     flexDirection: 'row',
@@ -314,22 +446,11 @@ const styles = StyleSheet.create({
   },
   radioButton: {
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#f9f9f9',
-  },
-  radioButtonSelected: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
   },
   radioButtonText: {
     fontSize: 14,
-    color: '#555',
-  },
-  radioButtonTextSelected: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
 })
