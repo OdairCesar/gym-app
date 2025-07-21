@@ -29,7 +29,16 @@ export const useAuth = () => {
       if (result) {
         await AsyncStorage.setItem('userToken', result.token)
         await AsyncStorage.setItem('userData', JSON.stringify(result.user))
-        router.replace('/(client)/perfil')
+
+        // Redirecionar baseado no tipo do usuário
+        if (result.user.isAdmin) {
+          router.replace('/(admin)/users')
+        } else if (result.user.isPersonal) {
+          router.replace('/(personal)/trainings')
+        } else {
+          router.replace('/(client)/training')
+        }
+
         return true
       }
 

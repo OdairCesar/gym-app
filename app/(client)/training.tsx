@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native'
-import { useFocusEffect, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import { useTrainings } from '@/hooks/useTrainings'
@@ -206,11 +206,11 @@ export default function TrainingScreen() {
     setRefreshing(false)
   }, [loadUserTrainings])
 
-  useFocusEffect(
-    useCallback(() => {
-      loadUserTrainings()
-    }, [loadUserTrainings]),
-  )
+  // Carregamento inicial apenas uma vez
+  useEffect(() => {
+    loadUserTrainings()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (loading) {
     return (

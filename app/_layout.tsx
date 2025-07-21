@@ -17,7 +17,7 @@ import { ThemeProvider, useTheme } from '@/context/themeContext'
 export { ErrorBoundary } from 'expo-router'
 
 export const unstable_settings = {
-  initialRouteName: '(auth)',
+  // initialRouteName removido - agora usando index.tsx
 }
 
 SplashScreen.preventAutoHideAsync()
@@ -75,6 +75,8 @@ function NavigationContainer() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(client)" options={{ headerShown: false }} />
+            <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+            <Stack.Screen name="(personal)" options={{ headerShown: false }} />
             <Stack.Screen
               name="trainingExercise"
               options={{

@@ -61,6 +61,7 @@ export default function AdminLayoutNav() {
     <AuthProvider>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <Tabs
+          initialRouteName="trainings"
           screenOptions={{
             tabBarActiveTintColor: colors.primary,
             tabBarInactiveTintColor: colors.textSecondary,
