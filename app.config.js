@@ -15,7 +15,7 @@ export default ({ config }) => ({
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.anonymous.gym',
+    bundleIdentifier: 'com.odairdev.gymapp',
     icon: './assets/images/physical-academia/ios/AppIcon.appiconset',
   },
   android: {
@@ -26,7 +26,7 @@ export default ({ config }) => ({
     },
     icon: './assets/images/physical-academia/android/mipmap-hdpi/ic_launcher.png',
     edgeToEdgeEnabled: true,
-    package: 'com.anonymous.gym',
+    package: 'com.odairdev.gymapp',
     permissions: [
       'android.permission.RECORD_AUDIO',
       'android.permission.CAMERA',
