@@ -1,84 +1,137 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
-import { useDiets } from '@/hooks/useDiets'
+﻿import React, { useState, useEffect, useCallback } from 'react'
+import {
+  View,
+  FlatList,
+  Alert,
+  RefreshControl,
+  StyleSheet,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native'
+import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { useUsers } from '@/hooks/useUsers'
-import { IDiet, IMeal } from '@/interfaces/Diet'
+import { useDiets } from '@/hooks/useDiets'
+import { useMeals } from '@/hooks/useMeals'
+import { useFoods } from '@/hooks/useFoods'
+import { Diet } from '@/interfaces/Diet'
+import { Meal } from '@/interfaces/Meal'
 import DietFormModal from '@/components/common/DietFormModal'
+import MealFormModal from '@/components/common/MealFormModal'
+import FoodFormModal from '@/components/common/FoodFormModal'
 import AssignDietModal from '@/components/common/AssignDietModal'
 import GenericFilterModal, {
   FilterField,
 } from '@/components/common/GenericFilterModal'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
 import DietCard from '@/components/common/DietCard'
+import { MealCard } from '@/components/common/MealCard'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface FilterState {
-  nome: string
-  criador: string
-  calorias: string
+  name: string
+  calories: string
+  userId: string
 }
 
 export default function DietsScreen() {
-  const {
-    currentUser,
-    clients,
-    fetchCurrentUser,
-    fetchClients,
-    assignDietToClient,
-  } = useUsers()
-  const { diets, fetchDiets, createDiet, updateDiet, deleteDiet, filterDiets } =
+  const { clients, fetchClients, assignDietToClient } = useUsers()
+  const { diets, fetchDiets, fetchDietsFiltered, createDiet, updateDiet, deleteDiet } =
     useDiets()
+  const { meals, loading: mealsLoading, fetchMeals, createMeal, updateMeal, deleteMeal } = useMeals()
+  const { foods, loading: foodsLoading, fetchFoods, createFood, updateFood, deleteFood } = useFoods()
+  const { colors } = useAppTheme()
 
-  const [filteredDiets, setFilteredDiets] = useState<IDiet[]>([])
+  const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    list: { flex: 1, paddingHorizontal: 16, paddingVertical: 8 },
+    // Meals modal
+    mealsModal: { flex: 1, backgroundColor: colors.background },
+    mealsHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    mealsHeaderCenter: { alignItems: 'center' },
+    mealsHeaderTitle: { fontSize: 17, fontWeight: '600', color: colors.text },
+    mealsHeaderSubtitle: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+    mealsHeaderBtn: { paddingHorizontal: 4, paddingVertical: 4, minWidth: 70 },
+    mealsHeaderBtnText: { fontSize: 15, color: colors.primary },
+    mealsHeaderAddBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 4,
+      paddingHorizontal: 4, paddingVertical: 4, minWidth: 70, justifyContent: 'flex-end',
+    },
+    mealsHeaderAddText: { fontSize: 15, color: colors.primary, fontWeight: '600' },
+    mealsScroll: { flex: 1, padding: 16 },
+    emptyText: {
+      textAlign: 'center', color: colors.textSecondary,
+      fontSize: 15, marginTop: 40,
+    },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    // Foods modal
+    foodsModal: { flex: 1, backgroundColor: colors.background },
+    foodItem: {
+      flexDirection: 'row', alignItems: 'center',
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 10, padding: 14, marginBottom: 10,
+      borderWidth: 1, borderColor: colors.border,
+    },
+    foodName: { flex: 1, fontSize: 15, color: colors.text },
+    foodActions: { flexDirection: 'row', gap: 8 },
+    foodActionBtn: {
+      padding: 6, borderRadius: 6,
+    },
+  })
+
+  const [filteredDiets, setFilteredDiets] = useState<Diet[]>([])
   const [refreshing, setRefreshing] = useState(false)
+
+  // Diet form modal
   const [modalVisible, setModalVisible] = useState(false)
   const [filterModalVisible, setFilterModalVisible] = useState(false)
   const [assignModalVisible, setAssignModalVisible] = useState(false)
-  const [editingDiet, setEditingDiet] = useState<IDiet | null>(null)
-  const [selectedDietForAssign, setSelectedDietForAssign] =
-    useState<IDiet | null>(null)
+  const [editingDiet, setEditingDiet] = useState<Diet | null>(null)
+  const [selectedDietForAssign, setSelectedDietForAssign] = useState<Diet | null>(null)
 
-  const [formData, setFormData] = useState<Partial<IDiet>>({
-    nome: '',
-    descricao: '',
-    calorias: 0,
-    proteinas: 0,
-    carboidratos: 0,
-    gorduras: 0,
-    criador: '',
-    refeicoes: [],
+  // Meals management modal
+  const [mealsModalVisible, setMealsModalVisible] = useState(false)
+  const [selectedDiet, setSelectedDiet] = useState<Diet | null>(null)
+  const [mealFormVisible, setMealFormVisible] = useState(false)
+  const [editingMeal, setEditingMeal] = useState<Meal | null>(null)
+  const [mealFormData, setMealFormData] = useState<Partial<Meal>>({ name: '', hourly: '', description: '' })
+
+  // Foods management modal
+  const [foodsModalVisible, setFoodsModalVisible] = useState(false)
+  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null)
+  const [foodFormVisible, setFoodFormVisible] = useState(false)
+  const [editingFoodId, setEditingFoodId] = useState<number | null>(null)
+  const [foodName, setFoodName] = useState('')
+
+  const [formData, setFormData] = useState<Partial<Diet>>({
+    name: '',
+    description: '',
+    calories: 0,
+    proteins: 0,
+    carbohydrates: 0,
+    fats: 0,
   })
-
-  // Atualizar o criador quando o usuário atual for carregado
-  useEffect(() => {
-    if (currentUser && formData.criador === '') {
-      setFormData((prev) => ({ ...prev, criador: currentUser._id || '' }))
-    }
-  }, [currentUser, formData.criador])
-
-  const [currentMeal, setCurrentMeal] = useState<IMeal>({
-    nome: '',
-    descricao: '',
-    horario: '',
-    alimentos: [],
-  })
-
-  const [mealModalVisible, setMealModalVisible] = useState(false)
-  const [currentFood, setCurrentFood] = useState('')
 
   const [filters, setFilters] = useState<FilterState>({
-    nome: '',
-    criador: '',
-    calorias: '',
+    name: '',
+    calories: '',
+    userId: '',
   })
 
   const handleFormChange = (key: string, value: string | number) => {
-    if (
-      key === 'calorias' ||
-      key === 'proteinas' ||
-      key === 'carboidratos' ||
-      key === 'gorduras'
-    ) {
+    if (['calories', 'proteins', 'carbohydrates', 'fats'].includes(key)) {
       const numValue =
         typeof value === 'string' ? parseFloat(value) || 0 : value
       setFormData({ ...formData, [key]: numValue })
@@ -87,135 +140,69 @@ export default function DietsScreen() {
     }
   }
 
-  const handleMealChange = (key: string, value: string) => {
-    setCurrentMeal({ ...currentMeal, [key]: value })
-  }
-
-  const handleFoodChange = (value: string) => {
-    setCurrentFood(value)
-  }
-
-  const addFood = () => {
-    if (!currentFood.trim()) {
-      Alert.alert('Erro', 'Digite o nome do alimento')
-      return
-    }
-
-    const updatedFoods = [...currentMeal.alimentos, currentFood.trim()]
-    setCurrentMeal({ ...currentMeal, alimentos: updatedFoods })
-    setCurrentFood('')
-  }
-
-  const removeFood = (index: number) => {
-    const updatedFoods = currentMeal.alimentos.filter((_, i) => i !== index)
-    setCurrentMeal({ ...currentMeal, alimentos: updatedFoods })
-  }
-
-  const addMeal = () => {
-    if (!currentMeal.nome.trim()) {
-      Alert.alert('Erro', 'Nome da refeição é obrigatório')
-      return
-    }
-
-    if (currentMeal.alimentos.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos um alimento')
-      return
-    }
-
-    const updatedMeals = [...(formData.refeicoes || []), currentMeal]
-    setFormData({ ...formData, refeicoes: updatedMeals })
-
-    // Reset do formulário de refeição
-    setCurrentMeal({
-      nome: '',
-      descricao: '',
-      horario: '',
-      alimentos: [],
-    })
-    setCurrentFood('')
-    setMealModalVisible(false)
-  }
-
-  const removeMeal = (index: number) => {
-    const updatedMeals = formData.refeicoes?.filter((_, i) => i !== index) || []
-    setFormData({ ...formData, refeicoes: updatedMeals })
-  }
-
   const handleFilterChange = (key: string, value: string) => {
     setFilters({ ...filters, [key]: value })
   }
 
   const resetForm = () => {
     setFormData({
-      nome: '',
-      descricao: '',
-      calorias: 0,
-      proteinas: 0,
-      carboidratos: 0,
-      gorduras: 0,
-      criador: currentUser?._id || '',
-      refeicoes: [],
+      name: '',
+      description: '',
+      calories: 0,
+      proteins: 0,
+      carbohydrates: 0,
+      fats: 0,
     })
-    setCurrentMeal({
-      nome: '',
-      descricao: '',
-      horario: '',
-      alimentos: [],
-    })
-    setCurrentFood('')
     setEditingDiet(null)
   }
 
-  const applyFilters = useCallback(() => {
-    const filtered = filterDiets(filters)
-    setFilteredDiets(filtered)
+  const applyFilters = async () => {
     setFilterModalVisible(false)
-  }, [filterDiets, filters])
+    const params: { userId?: number; name?: string } = {}
+    if (filters.name.trim()) params.name = filters.name.trim()
+    if (filters.userId) params.userId = Number(filters.userId)
+    if (Object.keys(params).length > 0) {
+      await fetchDietsFiltered(params)
+    } else {
+      await fetchDiets()
+    }
+  }
 
-  const clearFilters = () => {
-    setFilters({
-      nome: '',
-      criador: '',
-      calorias: '',
-    })
-    setFilteredDiets(diets)
+  const clearFilters = async () => {
+    setFilters({ name: '', calories: '', userId: '' })
+    await fetchDiets()
   }
 
   const saveDiet = async () => {
     try {
-      const dietData = { ...formData }
       const success = editingDiet
-        ? await updateDiet(editingDiet._id!, dietData)
-        : await createDiet(dietData)
+        ? await updateDiet(editingDiet.id, formData)
+        : await createDiet(formData)
 
       if (success) {
         setModalVisible(false)
         resetForm()
-        // Aplicar filtros novamente após salvar
-        const filtered = filterDiets(filters)
-        setFilteredDiets(filtered)
+        setFilteredDiets(diets)
       }
     } catch (error) {
       Alert.alert('Erro', 'Erro inesperado')
     }
   }
 
-  const openEditModal = (diet: IDiet) => {
+  const openEditModal = (diet: Diet) => {
     setEditingDiet(diet)
     setFormData({
-      nome: diet.nome,
-      descricao: diet.descricao,
-      calorias: diet.calorias,
-      proteinas: diet.proteinas,
-      carboidratos: diet.carboidratos,
-      gorduras: diet.gorduras,
-      criador: diet.criador,
-      refeicoes: diet.refeicoes,
+      name: diet.name,
+      description: diet.description,
+      calories: diet.calories,
+      proteins: diet.proteins,
+      carbohydrates: diet.carbohydrates,
+      fats: diet.fats,
     })
     setModalVisible(true)
   }
 
-  const handleDeleteDiet = async (dietId: string) => {
+  const handleDeleteDiet = async (dietId: number) => {
     Alert.alert('Confirmar', 'Tem certeza que deseja deletar esta dieta?', [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -224,25 +211,23 @@ export default function DietsScreen() {
         onPress: async () => {
           const success = await deleteDiet(dietId)
           if (success) {
-            // Aplicar filtros novamente após deletar
-            const filtered = filterDiets(filters)
-            setFilteredDiets(filtered)
+            setFilteredDiets(diets)
           }
         },
       },
     ])
   }
 
-  const openAssignModal = (diet: IDiet) => {
+  const openAssignModal = (diet: Diet) => {
     setSelectedDietForAssign(diet)
     setAssignModalVisible(true)
   }
 
   const handleAssignDiet = async (clientId: string) => {
-    if (selectedDietForAssign?._id) {
+    if (selectedDietForAssign?.id) {
       const success = await assignDietToClient(
-        clientId,
-        selectedDietForAssign._id,
+        Number(clientId),
+        selectedDietForAssign.id,
       )
       if (success) {
         setAssignModalVisible(false)
@@ -251,25 +236,108 @@ export default function DietsScreen() {
     }
   }
 
+  // ─── Meals handlers ───────────────────────────────────────────────────────
+  const openMealsModal = (diet: Diet) => {
+    setSelectedDiet(diet)
+    setMealsModalVisible(true)
+    fetchMeals(diet.id)
+  }
+
+  const resetMealForm = () => {
+    setMealFormData({ name: '', hourly: '', description: '' })
+    setEditingMeal(null)
+  }
+
+  const openAddMealForm = () => {
+    resetMealForm()
+    setMealFormVisible(true)
+  }
+
+  const openEditMealForm = (meal: Meal) => {
+    setEditingMeal(meal)
+    setMealFormData({ name: meal.name, hourly: meal.hourly, description: meal.description })
+    setMealFormVisible(true)
+  }
+
+  const saveMeal = async () => {
+    if (!selectedDiet) return
+    const success = editingMeal
+      ? await updateMeal(selectedDiet.id, editingMeal.id, mealFormData)
+      : await createMeal(selectedDiet.id, mealFormData)
+    if (success) {
+      setMealFormVisible(false)
+      resetMealForm()
+    }
+  }
+
+  const handleDeleteMeal = (mealId: number) => {
+    if (!selectedDiet) return
+    Alert.alert('Confirmar', 'Tem certeza que deseja deletar esta refeição?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Deletar',
+        style: 'destructive',
+        onPress: () => deleteMeal(selectedDiet.id, mealId),
+      },
+    ])
+  }
+
+  // ─── Foods handlers ───────────────────────────────────────────────────────
+  const openFoodsModal = (meal: Meal) => {
+    setSelectedMeal(meal)
+    setFoodsModalVisible(true)
+    fetchFoods(meal.id)
+  }
+
+  const openAddFoodForm = () => {
+    setEditingFoodId(null)
+    setFoodName('')
+    setFoodFormVisible(true)
+  }
+
+  const openEditFoodForm = (foodId: number, currentName: string) => {
+    setEditingFoodId(foodId)
+    setFoodName(currentName)
+    setFoodFormVisible(true)
+  }
+
+  const saveFood = async () => {
+    if (!selectedMeal) return
+    const success = editingFoodId !== null
+      ? await updateFood(selectedMeal.id, editingFoodId, { name: foodName })
+      : await createFood(selectedMeal.id, { name: foodName })
+    if (success) {
+      setFoodFormVisible(false)
+      setEditingFoodId(null)
+      setFoodName('')
+    }
+  }
+
+  const handleDeleteFood = (foodId: number) => {
+    if (!selectedMeal) return
+    Alert.alert('Confirmar', 'Tem certeza que deseja deletar este alimento?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Deletar',
+        style: 'destructive',
+        onPress: () => deleteFood(selectedMeal.id, foodId),
+      },
+    ])
+  }
+
   useEffect(() => {
     fetchDiets()
-    fetchCurrentUser()
     fetchClients()
-  }, [fetchDiets, fetchCurrentUser, fetchClients])
+  }, [fetchDiets, fetchClients])
 
   useEffect(() => {
     setFilteredDiets(diets)
-    // Reaplica os filtros após carregar as dietas
-    if (filters.nome || filters.criador || filters.calorias) {
-      const filtered = filterDiets(filters)
-      setFilteredDiets(filtered)
-    }
-  }, [diets, filterDiets, filters])
+  }, [diets])
 
   const onRefresh = async () => {
     setRefreshing(true)
     try {
-      await Promise.all([fetchDiets(), fetchCurrentUser(), fetchClients()])
+      await Promise.all([fetchDiets(), fetchClients()])
     } finally {
       setRefreshing(false)
     }
@@ -277,49 +345,21 @@ export default function DietsScreen() {
 
   const dietFilterFields: FilterField[] = [
     {
-      key: 'nome',
+      key: 'name',
       label: 'Nome',
       type: 'text',
       placeholder: 'Filtrar por nome',
-      value: filters.nome,
+      value: filters.name,
     },
     {
-      key: 'criador',
-      label: 'Criador (Personal)',
+      key: 'userId',
+      label: 'Aluno',
       type: 'select',
-      placeholder: 'Minhas dietas...',
-      value: filters.criador,
-      options: currentUser
-        ? [
-            {
-              label: currentUser.nome,
-              value: currentUser._id || '',
-            },
-          ]
-        : [],
-    },
-    {
-      key: 'calorias',
-      label: 'Calorias mínimas',
-      type: 'text',
-      placeholder: 'Ex: 1500',
-      value: filters.calorias,
+      placeholder: 'Todos os alunos',
+      value: filters.userId,
+      options: clients.map((c) => ({ label: c.name, value: String(c.id) })),
     },
   ]
-
-  const { colors } = useAppTheme()
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    list: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-    },
-  })
 
   const headerButtons: HeaderButton[] = [
     {
@@ -337,23 +377,22 @@ export default function DietsScreen() {
     },
   ]
 
-  const renderDietItem = ({ item }: { item: IDiet }) => (
+  const renderDietItem = ({ item }: { item: Diet }) => (
     <DietCard
       diet={item}
-      personals={currentUser ? [currentUser] : []}
       onEdit={openEditModal}
       onDelete={handleDeleteDiet}
       onAssignToClient={openAssignModal}
+      onManageMeals={openMealsModal}
     />
   )
 
   return (
     <View style={styles.container}>
       <PageHeader title="Gerenciar Dietas" buttons={headerButtons} />
-
       <FlatList
         data={filteredDiets}
-        keyExtractor={(item) => item._id || ''}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderDietItem}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -362,30 +401,20 @@ export default function DietsScreen() {
         showsVerticalScrollIndicator={false}
       />
 
+      {/* Diet form modal */}
       <DietFormModal
         visible={modalVisible}
         title={editingDiet ? 'Editar Dieta' : 'Nova Dieta'}
         formData={formData}
-        currentMeal={currentMeal}
-        mealModalVisible={mealModalVisible}
-        currentFood={currentFood}
-        personals={currentUser ? [currentUser] : []}
         onClose={() => {
           setModalVisible(false)
           resetForm()
         }}
         onSave={saveDiet}
         onFormChange={handleFormChange}
-        onMealChange={handleMealChange}
-        onAddMeal={addMeal}
-        onRemoveMeal={removeMeal}
-        onOpenMealModal={() => setMealModalVisible(true)}
-        onCloseMealModal={() => setMealModalVisible(false)}
-        onFoodChange={handleFoodChange}
-        onAddFood={addFood}
-        onRemoveFood={removeFood}
       />
 
+      {/* Assign modal */}
       <AssignDietModal
         visible={assignModalVisible}
         diet={selectedDietForAssign}
@@ -397,6 +426,7 @@ export default function DietsScreen() {
         onAssign={handleAssignDiet}
       />
 
+      {/* Filter modal */}
       <GenericFilterModal
         visible={filterModalVisible}
         title="Filtrar Dietas"
@@ -405,6 +435,149 @@ export default function DietsScreen() {
         onApplyFilters={applyFilters}
         onClearFilters={clearFilters}
         onFilterChange={handleFilterChange}
+      />
+
+      {/* ── Meals management modal ── */}
+      <Modal
+        visible={mealsModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setMealsModalVisible(false)}
+      >
+        <SafeAreaView style={styles.mealsModal}>
+          <View style={styles.mealsHeader}>
+            <TouchableOpacity
+              style={styles.mealsHeaderBtn}
+              onPress={() => setMealsModalVisible(false)}
+            >
+              <Text style={styles.mealsHeaderBtnText}>Fechar</Text>
+            </TouchableOpacity>
+            <View style={styles.mealsHeaderCenter}>
+              <Text style={styles.mealsHeaderTitle} numberOfLines={1}>
+                {selectedDiet?.name ?? 'Refeições'}
+              </Text>
+              <Text style={styles.mealsHeaderSubtitle}>
+                {meals.length} {meals.length === 1 ? 'refeição' : 'refeições'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.mealsHeaderAddBtn}
+              onPress={openAddMealForm}
+            >
+              <Feather name="plus" size={16} color={colors.primary} />
+              <Text style={styles.mealsHeaderAddText}>Adicionar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {mealsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : (
+            <ScrollView style={styles.mealsScroll} showsVerticalScrollIndicator={false}>
+              {meals.length === 0 ? (
+                <Text style={styles.emptyText}>Nenhuma refeição cadastrada.</Text>
+              ) : (
+                meals.map((meal) => (
+                  <MealCard
+                    key={meal.id}
+                    meal={meal}
+                    foods={meal.foods}
+                    onEdit={openEditMealForm}
+                    onDelete={handleDeleteMeal}
+                    onManageFoods={openFoodsModal}
+                  />
+                ))
+              )}
+            </ScrollView>
+          )}
+        </SafeAreaView>
+      </Modal>
+
+      {/* Meal form modal */}
+      <MealFormModal
+        visible={mealFormVisible}
+        title={editingMeal ? 'Editar Refeição' : 'Nova Refeição'}
+        formData={mealFormData}
+        onClose={() => { setMealFormVisible(false); resetMealForm() }}
+        onSave={saveMeal}
+        onFormChange={(key, value) => setMealFormData({ ...mealFormData, [key]: value })}
+      />
+
+      {/* ── Foods management modal ── */}
+      <Modal
+        visible={foodsModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setFoodsModalVisible(false)}
+      >
+        <SafeAreaView style={styles.foodsModal}>
+          <View style={styles.mealsHeader}>
+            <TouchableOpacity
+              style={styles.mealsHeaderBtn}
+              onPress={() => setFoodsModalVisible(false)}
+            >
+              <Text style={styles.mealsHeaderBtnText}>Fechar</Text>
+            </TouchableOpacity>
+            <View style={styles.mealsHeaderCenter}>
+              <Text style={styles.mealsHeaderTitle} numberOfLines={1}>
+                {selectedMeal?.name ?? 'Alimentos'}
+              </Text>
+              <Text style={styles.mealsHeaderSubtitle}>
+                {foods.length} {foods.length === 1 ? 'alimento' : 'alimentos'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.mealsHeaderAddBtn}
+              onPress={openAddFoodForm}
+            >
+              <Feather name="plus" size={16} color={colors.primary} />
+              <Text style={styles.mealsHeaderAddText}>Adicionar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {foodsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : (
+            <ScrollView style={styles.mealsScroll} showsVerticalScrollIndicator={false}>
+              {foods.length === 0 ? (
+                <Text style={styles.emptyText}>Nenhum alimento cadastrado.</Text>
+              ) : (
+                foods.map((food) => (
+                  <View key={food.id} style={styles.foodItem}>
+                    <Text style={styles.foodName}>{food.name}</Text>
+                    <View style={styles.foodActions}>
+                      <TouchableOpacity
+                        style={[styles.foodActionBtn, { backgroundColor: colors.primaryButtonLight }]}
+                        onPress={() => openEditFoodForm(food.id, food.name)}
+                      >
+                        <MaterialIcons name="edit" size={16} color={colors.primary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.foodActionBtn, { backgroundColor: colors.dangerLight }]}
+                        onPress={() => handleDeleteFood(food.id)}
+                      >
+                        <MaterialIcons name="delete" size={16} color={colors.danger} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          )}
+        </SafeAreaView>
+      </Modal>
+
+      {/* Food form modal */}
+      <FoodFormModal
+        visible={foodFormVisible}
+        title={editingFoodId !== null ? 'Editar Alimento' : 'Novo Alimento'}
+        name={foodName}
+        onClose={() => { setFoodFormVisible(false); setFoodName(''); setEditingFoodId(null) }}
+        onSave={saveFood}
+        onNameChange={setFoodName}
       />
     </View>
   )

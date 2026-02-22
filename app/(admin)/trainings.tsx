@@ -1,10 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
-import { useUsers } from '@/hooks/useUsers'
+import {
+  View,
+  FlatList,
+  Alert,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  Modal,
+  TouchableOpacity,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTrainings } from '@/hooks/useTrainings'
+import { useExercises } from '@/hooks/useExercises'
+import { useUsers } from '@/hooks/useUsers'
 import { Training } from '@/interfaces/Training'
 import { Exercise } from '@/interfaces/Exercise'
 import TrainingFormModal from '@/components/common/TrainingFormModal'
+import ExerciseFormModal from '@/components/common/ExerciseFormModal'
+import ExerciseList from '@/components/common/ExerciseList'
 import GenericFilterModal, {
   FilterField,
 } from '@/components/common/GenericFilterModal'
@@ -13,337 +26,435 @@ import TrainingCard from '@/components/common/TrainingCard'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface FilterState {
-  nome: string
-  treinador: string
-  user: string
+  name: string
+  userId: string
+  coachId: string
 }
 
 export default function TrainingsScreen() {
-  const { personals, clients, fetchPersonals, fetchClients } = useUsers()
   const {
     trainings,
     fetchTrainings,
+    fetchTrainingsFiltered,
+    fetchTrainingById,
     createTraining,
     updateTraining,
     deleteTraining,
     filterTrainings,
   } = useTrainings()
 
-  const { colors } = useAppTheme()
+  const { clients, personals, fetchClients, fetchPersonals } = useUsers()
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    list: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-    },
-  })
+  const {
+    trainingExercises,
+    setTrainingExercises,
+    fetchTrainingExercises,
+    createExercise,
+    updateExercise,
+    deleteExercise,
+    addExerciseToTraining,
+    removeExerciseFromTraining,
+  } = useExercises()
 
-  const [filteredTrainings, setFilteredTrainings] = useState<Training[]>([])
+  const { styles: globalStyles, colors } = useAppTheme()
+
+  const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [modalVisible, setModalVisible] = useState(false)
-  const [filterModalVisible, setFilterModalVisible] = useState(false)
+
+  const [isFormModalVisible, setIsFormModalVisible] = useState(false)
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false)
+  const [isExerciseModalVisible, setIsExerciseModalVisible] = useState(false)
+
   const [editingTraining, setEditingTraining] = useState<Training | null>(null)
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
+  const [selectedTraining, setSelectedTraining] = useState<Training | null>(
+    null,
+  )
 
   const [formData, setFormData] = useState<Partial<Training>>({
-    nome: '',
-    user: '',
-    treinador: '',
-    exercicios: [],
+    name: '',
+    description: '',
   })
-
-  const [currentExercise, setCurrentExercise] = useState<Exercise>({
-    nome: '',
-    series: '',
-    tipo: 'musculacao',
-    carga: 0,
-    descanso: 60,
-    ordem: 1,
-    videoUrl: '',
-  })
-
-  const [exerciseModalVisible, setExerciseModalVisible] = useState(false)
-
   const [filters, setFilters] = useState<FilterState>({
-    nome: '',
-    treinador: '',
-    user: '',
+    name: '',
+    userId: '',
+    coachId: '',
   })
 
-  const handleFormChange = (key: string, value: string | boolean) => {
-    if (key === 'add-exercise') {
-      setExerciseModalVisible(true)
-    } else {
-      setFormData({ ...formData, [key]: value })
-    }
-  }
-
-  const handleExerciseChange = (key: string, value: string | number) => {
-    if (key === 'carga' || key === 'descanso') {
-      setCurrentExercise({
-        ...currentExercise,
-        [key]: typeof value === 'string' ? parseInt(value) || 0 : value,
-      })
-    } else {
-      setCurrentExercise({ ...currentExercise, [key]: value })
-    }
-  }
-
-  const addExercise = () => {
-    if (!currentExercise.nome.trim()) {
-      Alert.alert('Erro', 'Nome do exercício é obrigatório')
-      return
-    }
-
-    const newExercise: Exercise = {
-      ...currentExercise,
-      ordem: (formData.exercicios?.length || 0) + 1,
-    }
-
-    const updatedExercises = [...(formData.exercicios || []), newExercise]
-    setFormData({ ...formData, exercicios: updatedExercises })
-
-    // Reset do formulário de exercício
-    setCurrentExercise({
-      nome: '',
-      series: '',
-      tipo: 'musculacao',
-      carga: 0,
-      descanso: 60,
-      ordem: 1,
-      videoUrl: '',
-    })
-    setExerciseModalVisible(false)
-  }
-
-  const removeExercise = (index: number) => {
-    const updatedExercises =
-      formData.exercicios?.filter((_, i) => i !== index) || []
-    // Reordenar os exercícios
-    const reorderedExercises = updatedExercises.map((ex, i) => ({
-      ...ex,
-      ordem: i + 1,
-    }))
-    setFormData({ ...formData, exercicios: reorderedExercises })
-  }
-
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters({ ...filters, [key]: value })
-  }
-
-  const resetForm = () => {
-    setFormData({
-      nome: '',
-      user: '',
-      treinador: '',
-      exercicios: [],
-    })
-    setCurrentExercise({
-      nome: '',
-      series: '',
-      tipo: 'musculacao',
-      carga: 0,
-      descanso: 60,
-      ordem: 1,
-      videoUrl: '',
-    })
-    setEditingTraining(null)
-  }
-
-  const applyFilters = useCallback(() => {
-    const filtered = filterTrainings(filters)
-    setFilteredTrainings(filtered)
-    setFilterModalVisible(false)
-  }, [filterTrainings, filters])
-
-  const clearFilters = () => {
-    setFilters({
-      nome: '',
-      treinador: '',
-      user: '',
-    })
-    setFilteredTrainings(trainings)
-  }
-
-  const saveTraining = async () => {
-    try {
-      const trainingData = { ...formData }
-      const success = editingTraining
-        ? await updateTraining(editingTraining._id!, trainingData)
-        : await createTraining(trainingData)
-
-      if (success) {
-        setModalVisible(false)
-        resetForm()
-        // Aplicar filtros novamente após salvar
-        const filtered = filterTrainings(filters)
-        setFilteredTrainings(filtered)
+  const refreshTrainingExercises = useCallback(
+    async (trainingId: number) => {
+      const detail = await fetchTrainingById(trainingId)
+      if (detail?.exercises && detail.exercises.length > 0) {
+        setTrainingExercises(detail.exercises)
+      } else {
+        await fetchTrainingExercises(trainingId)
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Erro inesperado')
+    },
+    [fetchTrainingById, setTrainingExercises, fetchTrainingExercises],
+  )
+
+  const loadTrainings = useCallback(async () => {
+    setLoading(true)
+    try {
+      await fetchTrainings()
+    } finally {
+      setLoading(false)
     }
+  }, [fetchTrainings])
+
+  useEffect(() => {
+    loadTrainings()
+    fetchClients()
+    fetchPersonals()
+  }, [loadTrainings, fetchClients, fetchPersonals])
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    await loadTrainings()
+    if (selectedTraining) await refreshTrainingExercises(selectedTraining.id)
+    setRefreshing(false)
+  }
+
+  const openCreateModal = () => {
+    setEditingTraining(null)
+    setFormData({ name: '', description: '' })
+    setIsFormModalVisible(true)
   }
 
   const openEditModal = (training: Training) => {
     setEditingTraining(training)
-    setFormData({
-      nome: training.nome,
-      user: training.user,
-      treinador: training.treinador,
-      exercicios: training.exercicios,
-    })
-    setModalVisible(true)
+    setFormData({ name: training.name, description: training.description })
+    setIsFormModalVisible(true)
   }
 
-  const handleDeleteTraining = async (trainingId: string) => {
-    Alert.alert('Confirmar', 'Tem certeza que deseja deletar este treino?', [
+  const saveTraining = async () => {
+    if (!formData.name?.trim()) {
+      Alert.alert('Atenção', 'O nome do treino é obrigatório.')
+      return
+    }
+    try {
+      if (editingTraining) {
+        await updateTraining(editingTraining.id, formData)
+      } else {
+        await createTraining(formData)
+      }
+      setIsFormModalVisible(false)
+      await loadTrainings()
+    } catch (err) {
+      Alert.alert('Erro', 'Não foi possível salvar o treino.')
+    }
+  }
+
+  const handleDeleteTraining = (trainingId: number) => {
+    Alert.alert('Confirmar exclusão', 'Deseja excluir este treino?', [
       { text: 'Cancelar', style: 'cancel' },
       {
-        text: 'Deletar',
+        text: 'Excluir',
         style: 'destructive',
         onPress: async () => {
-          const success = await deleteTraining(trainingId)
-          if (success) {
-            // Aplicar filtros novamente após deletar
-            const filtered = filterTrainings(filters)
-            setFilteredTrainings(filtered)
+          try {
+            await deleteTraining(trainingId)
+            if (selectedTraining?.id === trainingId) setSelectedTraining(null)
+            await loadTrainings()
+          } catch {
+            Alert.alert('Erro', 'Não foi possível excluir o treino.')
           }
         },
       },
     ])
   }
 
-  useEffect(() => {
-    fetchTrainings()
-    fetchPersonals()
-    fetchClients()
-  }, [fetchTrainings, fetchPersonals, fetchClients])
+  const handleViewExercises = async (training: Training) => {
+    setSelectedTraining(training)
+    await refreshTrainingExercises(training.id)
+  }
 
-  // Reaplica os filtros quando os treinamentos são carregados
-  useEffect(() => {
-    setFilteredTrainings(trainings)
-    if (filters.nome || filters.treinador || filters.user) {
-      const filtered = filterTrainings(filters)
-      setFilteredTrainings(filtered)
-    }
-  }, [trainings, filterTrainings, filters])
-
-  const onRefresh = async () => {
-    setRefreshing(true)
+  const handleAddExercise = async (data: Partial<Exercise>) => {
+    if (!selectedTraining) return
     try {
-      await Promise.all([fetchTrainings(), fetchPersonals(), fetchClients()])
-    } finally {
-      setRefreshing(false)
+      const created = await createExercise(data)
+      if (created) {
+        await addExerciseToTraining(selectedTraining.id, created.id)
+        await refreshTrainingExercises(selectedTraining.id)
+      }
+    } catch {
+      Alert.alert('Erro', 'Não foi possível adicionar o exercício.')
+    }
+    setIsExerciseModalVisible(false)
+    setEditingExercise(null)
+  }
+
+  const handleEditExercise = async (data: Partial<Exercise>) => {
+    if (!editingExercise || !selectedTraining) return
+    try {
+      await updateExercise(editingExercise.id, data)
+      await refreshTrainingExercises(selectedTraining.id)
+    } catch {
+      Alert.alert('Erro', 'Não foi possível editar o exercício.')
+    }
+    setIsExerciseModalVisible(false)
+    setEditingExercise(null)
+  }
+
+  const handleRemoveExercise = async (exerciseId: number) => {
+    if (!selectedTraining) return
+    Alert.alert(
+      'Remover exercício',
+      'Deseja remover este exercício do treino?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeExerciseFromTraining(selectedTraining.id, exerciseId)
+              await refreshTrainingExercises(selectedTraining.id)
+            } catch {
+              Alert.alert('Erro', 'Não foi possível remover o exercício.')
+            }
+          },
+        },
+      ],
+    )
+  }
+
+  const applyFilters = async () => {
+    setIsFilterModalVisible(false)
+    const params: { userId?: number; coachId?: number; name?: string } = {}
+    if (filters.name.trim()) params.name = filters.name.trim()
+    if (filters.userId) params.userId = Number(filters.userId)
+    if (filters.coachId) params.coachId = Number(filters.coachId)
+    if (Object.keys(params).length > 0) {
+      await fetchTrainingsFiltered(params)
+    } else {
+      await fetchTrainings()
     }
   }
 
-  const trainingFilterFields: FilterField[] = [
-    {
-      key: 'nome',
-      label: 'Nome',
-      type: 'text',
-      placeholder: 'Filtrar por nome',
-      value: filters.nome,
-    },
-    {
-      key: 'treinador',
-      label: 'Personal Trainer',
-      type: 'select',
-      placeholder: 'Todos os personals...',
-      value: filters.treinador,
-      options: personals.map((personal) => ({
-        label: personal.nome,
-        value: personal._id || '',
-      })),
-    },
-    {
-      key: 'user',
-      label: 'Cliente',
-      type: 'select',
-      placeholder: 'Todos os clientes...',
-      value: filters.user,
-      options: clients.map((client) => ({
-        label: client.nome,
-        value: client._id || '',
-      })),
-    },
-  ]
+  const clearFilters = async () => {
+    setFilters({ name: '', userId: '', coachId: '' })
+    await fetchTrainings()
+  }
 
   const headerButtons: HeaderButton[] = [
     {
-      icon: 'filter',
-      onPress: () => setFilterModalVisible(true),
-      color: colors.primary,
+      icon: 'filter-outline',
+      onPress: () => setIsFilterModalVisible(true),
     },
     {
       icon: 'plus',
-      onPress: () => {
-        resetForm()
-        setModalVisible(true)
-      },
-      color: colors.primary,
+      onPress: openCreateModal,
     },
   ]
 
-  const renderTrainingItem = ({ item }: { item: Training }) => (
-    <TrainingCard
-      training={item}
-      personals={personals}
-      clients={clients}
-      onEdit={openEditModal}
-      onDelete={handleDeleteTraining}
-    />
-  )
+  const filterFields: FilterField[] = [
+    {
+      key: 'name',
+      label: 'Nome',
+      type: 'text',
+      placeholder: 'Filtrar por nome...',
+      value: filters.name,
+    },
+    {
+      key: 'userId',
+      label: 'Aluno',
+      type: 'select',
+      placeholder: 'Todos os alunos',
+      value: filters.userId,
+      options: clients.map((c) => ({ label: c.name, value: String(c.id) })),
+    },
+    {
+      key: 'coachId',
+      label: 'Personal Trainer',
+      type: 'select',
+      placeholder: 'Todos os personals',
+      value: filters.coachId,
+      options: personals.map((p) => ({ label: p.name, value: String(p.id) })),
+    },
+  ]
 
   return (
-    <View style={styles.container}>
-      <PageHeader title="Gerenciar Treinos" buttons={headerButtons} />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <PageHeader title="Treinos" buttons={headerButtons} />
 
       <FlatList
-        data={filteredTrainings}
-        keyExtractor={(item) => item._id}
-        renderItem={renderTrainingItem}
+        data={trainings}
+        keyExtractor={(item) => item.id.toString()}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <TrainingCard
+            training={item}
+            onEdit={() => openEditModal(item)}
+            onDelete={() => handleDeleteTraining(item.id)}
+            onViewExercises={() => handleViewExercises(item)}
+          />
+        )}
+        ListEmptyComponent={
+          !loading ? (
+            <Text style={[globalStyles.text, styles.emptyText]}>
+              Nenhum treino encontrado.
+            </Text>
+          ) : null
+        }
       />
 
+      {/* Painel de exercícios do treino selecionado */}
+      {selectedTraining && (
+        <Modal
+          visible={!!selectedTraining}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setSelectedTraining(null)}
+        >
+          <SafeAreaView
+            style={{ flex: 1, backgroundColor: colors.background }}
+            edges={['top']}
+          >
+            {/* Header igual ao TrainingFormModal */}
+            <View
+              style={[
+                localStyles.modalHeader,
+                {
+                  backgroundColor: colors.backgroundSecondary,
+                  borderBottomColor: colors.border,
+                },
+              ]}
+            >
+              <TouchableOpacity onPress={() => setSelectedTraining(null)}>
+                <Text
+                  style={[localStyles.headerSideBtn, { color: colors.error }]}
+                >
+                  Fechar
+                </Text>
+              </TouchableOpacity>
+              <View style={localStyles.headerTitleWrapper}>
+                <Text
+                  style={[localStyles.headerTitle, { color: colors.text }]}
+                  numberOfLines={1}
+                >
+                  {selectedTraining.name}
+                </Text>
+                <Text
+                  style={[
+                    localStyles.headerSubtitle,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  {trainingExercises.length}{' '}
+                  {trainingExercises.length === 1 ? 'exercício' : 'exercícios'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setEditingExercise(null)
+                  setIsExerciseModalVisible(true)
+                }}
+              >
+                <Text
+                  style={[
+                    localStyles.headerSideBtn,
+                    { color: colors.primary, textAlign: 'right' },
+                  ]}
+                >
+                  + Adicionar
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ExerciseList
+              exercises={trainingExercises}
+              onAdd={() => {
+                setEditingExercise(null)
+                setIsExerciseModalVisible(true)
+              }}
+              onEdit={(exercise) => {
+                setEditingExercise(exercise)
+                setIsExerciseModalVisible(true)
+              }}
+              onRemove={handleRemoveExercise}
+            />
+          </SafeAreaView>
+        </Modal>
+      )}
+
       <TrainingFormModal
-        visible={modalVisible}
+        visible={isFormModalVisible}
         title={editingTraining ? 'Editar Treino' : 'Novo Treino'}
         formData={formData}
-        currentExercise={currentExercise}
-        exerciseModalVisible={exerciseModalVisible}
-        clients={clients}
-        personals={personals}
-        onClose={() => {
-          setModalVisible(false)
-          resetForm()
-        }}
+        onClose={() => setIsFormModalVisible(false)}
         onSave={saveTraining}
-        onFormChange={handleFormChange}
-        onExerciseChange={handleExerciseChange}
-        onAddExercise={addExercise}
-        onRemoveExercise={removeExercise}
-        onOpenExerciseModal={() => setExerciseModalVisible(true)}
-        onCloseExerciseModal={() => setExerciseModalVisible(false)}
+        onFormChange={(field, value) =>
+          setFormData((prev) => ({ ...prev, [field]: value }))
+        }
+      />
+
+      <ExerciseFormModal
+        visible={isExerciseModalVisible}
+        title={editingExercise ? 'Editar Exercício' : 'Novo Exercício'}
+        initialData={editingExercise || undefined}
+        onClose={() => {
+          setIsExerciseModalVisible(false)
+          setEditingExercise(null)
+        }}
+        onSave={editingExercise ? handleEditExercise : handleAddExercise}
       />
 
       <GenericFilterModal
-        visible={filterModalVisible}
+        visible={isFilterModalVisible}
         title="Filtrar Treinos"
-        fields={trainingFilterFields}
-        onClose={() => setFilterModalVisible(false)}
+        fields={filterFields}
+        onClose={() => setIsFilterModalVisible(false)}
         onApplyFilters={applyFilters}
         onClearFilters={clearFilters}
-        onFilterChange={handleFilterChange}
+        onFilterChange={(key, value) =>
+          setFilters((prev) => ({ ...prev, [key]: value }))
+        }
       />
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  listContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 40,
+    opacity: 0.6,
+  },
+})
+
+const localStyles = StyleSheet.create({
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  headerTitleWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    marginTop: 1,
+  },
+  headerSideBtn: {
+    fontSize: 15,
+    fontWeight: '500',
+    minWidth: 72,
+  },
+})

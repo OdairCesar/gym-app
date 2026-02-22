@@ -13,15 +13,19 @@ export interface LoginResponse {
 }
 
 export interface RegisterRequest {
-  nome: string
+  name: string
   email: string
   password: string
-  dataNascimento?: Date
-  telefone?: string
-  cpf?: string
-  sexo?: 'M' | 'F' | 'O'
-  profissao?: string
-  endereco?: string
+  password_confirmation: string
+  birthDate?: string | null
+  phone?: string | null
+  cpf?: string | null
+  gender?: 'M' | 'F' | 'O' | null
+  profession?: string | null
+  address?: string | null
+  gymId?: number | null
+  dietId?: number | null
+  isAdmin?: boolean
   isPersonal?: boolean
 }
 
@@ -39,26 +43,12 @@ export class AuthService {
     return apiService.post<User>(API_ENDPOINTS.REGISTER, userData)
   }
 
-  async changePassword(
-    passwordData: ChangePasswordRequest,
-    token: string,
-  ): Promise<ApiResponse<void>> {
-    return apiService.post<void>(
-      API_ENDPOINTS.CHANGE_PASSWORD,
-      passwordData,
-      token,
-    )
+  async logout(token: string): Promise<ApiResponse<void>> {
+    return apiService.post<void>(API_ENDPOINTS.LOGOUT, {}, token)
   }
 
   async getCurrentUser(token: string): Promise<ApiResponse<User>> {
-    return apiService.get<User>(API_ENDPOINTS.USER_ME, token)
-  }
-
-  async updateCurrentUser(
-    userData: Partial<User>,
-    token: string,
-  ): Promise<ApiResponse<User>> {
-    return apiService.put<User>(API_ENDPOINTS.USER_ME, userData, token)
+    return apiService.get<User>(API_ENDPOINTS.AUTH_ME, token)
   }
 }
 

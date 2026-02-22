@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import {
   TextInput,
   View,
@@ -9,11 +9,12 @@ import {
   ScrollView,
   KeyboardAvoidingView,
 } from 'react-native'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker'
 import { MaskedTextInput } from 'react-native-mask-text'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { useAuth } from '@/hooks/useAuth'
 import { formatDate } from '@/utils/formatDate'
@@ -21,41 +22,43 @@ import { useAppTheme } from '@/hooks/useAppTheme'
 
 export default function Register() {
   const [form, setForm] = useState({
-    nome: '',
+    name: '',
     email: '',
     password: '',
-    dataNascimento: '',
-    telefone: '',
+    password_confirmation: '',
+    birthDate: '',
+    phone: '',
     cpf: '',
-    sexo: '',
-    profissao: '',
-    endereco: '',
+    gender: '',
+    profession: '',
+    address: '',
     isAdmin: false,
     isPersonal: false,
-    isActive: true,
   })
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [registered, setRegistered] = useState(false)
   const { register } = useAuth()
   const { colors } = useAppTheme()
+  const router = useRouter()
 
   const handleRegister = async () => {
-    if (!form.nome || !form.email || !form.password) {
+    if (!form.name || !form.email || !form.password) {
       return
     }
 
-    // Converter dataNascimento para Date se existir
     const userData = {
       ...form,
-      dataNascimento: form.dataNascimento
-        ? parseDate(form.dataNascimento)
-        : undefined,
-      sexo: form.sexo as 'M' | 'F' | 'O' | undefined,
+      birthDate: form.birthDate ? parseDateToISO(form.birthDate) : null,
+      gender: (form.gender as 'M' | 'F' | 'O') || null,
     }
 
-    await register(userData)
+    const success = await register(userData)
+    if (success) {
+      setRegistered(true)
+    }
   }
 
-  const selectSexo = (value: string) => setForm({ ...form, sexo: value })
+  const selectGender = (value: string) => setForm({ ...form, gender: value })
   const selectIsAdmin = (value: string) =>
     setForm({ ...form, isAdmin: value === 'S' })
   const selectIsPersonal = (value: string) =>
@@ -63,6 +66,11 @@ export default function Register() {
   const equalsIsAdmin = (value: string) => form.isAdmin === (value === 'S')
   const equalsIsPersonal = (value: string) =>
     form.isPersonal === (value === 'S')
+
+  const parseDateToISO = (dateString: string): string => {
+    const [day, month, year] = dateString.split('/').map(Number)
+    return new Date(year, month - 1, day).toISOString()
+  }
 
   const parseDate = (dateString: string): Date => {
     const [day, month, year] = dateString.split('/').map(Number)
@@ -78,7 +86,7 @@ export default function Register() {
       return
     }
     if (selectedDate) {
-      setForm({ ...form, dataNascimento: formatDate(selectedDate) })
+      setForm({ ...form, birthDate: formatDate(selectedDate) })
     }
     setShowDatePicker(false)
   }
@@ -89,6 +97,52 @@ export default function Register() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={100}
     >
+      {registered ? (
+        <ScrollView
+          contentContainerStyle={[
+            styles.container,
+            { justifyContent: 'center', minHeight: '100%' },
+          ]}
+        >
+          <View
+            style={{
+              alignItems: 'center',
+              gap: 16,
+              paddingVertical: 40,
+            }}
+          >
+            <MaterialCommunityIcons
+              name="account-clock"
+              size={64}
+              color={colors.primary}
+            />
+            <Text
+              style={[
+                styles.title,
+                { color: colors.text },
+              ]}
+            >
+              Cadastro Realizado!
+            </Text>
+            <Text
+              style={[
+                styles.description,
+                { color: colors.textSecondary, fontSize: 15 },
+              ]}
+            >
+              Seu cadastro foi enviado com sucesso. Aguarde a aprovação de um
+              administrador para acessar o aplicativo.
+            </Text>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: colors.primary }]}
+              onPress={() => router.replace('/(auth)/login')}
+              accessibilityRole="button"
+            >
+              <Text style={styles.buttonText}>Ir para o Login</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      ) : (
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.container}
@@ -96,8 +150,8 @@ export default function Register() {
       >
         <Text style={[styles.title, { color: colors.text }]}>Registre-se</Text>
         <Text style={[styles.description, { color: colors.textSecondary }]}>
-          Para usar o aplicativo é necessário que você se registre. Após o
-          registro, você poderá acessar todas as funcionalidades do aplicativo.
+          Para usar o aplicativo e necessario que voce se registre. Apos o
+          registro, voce podera acessar todas as funcionalidades do aplicativo.
         </Text>
 
         <TextInput
@@ -110,8 +164,8 @@ export default function Register() {
             },
           ]}
           placeholder="Nome"
-          onChangeText={(value) => setForm({ ...form, nome: value })}
-          value={form.nome}
+          onChangeText={(value) => setForm({ ...form, name: value })}
+          value={form.name}
           autoCapitalize="words"
           placeholderTextColor={colors.textSecondary}
         />
@@ -152,6 +206,24 @@ export default function Register() {
           placeholderTextColor={colors.textSecondary}
         />
 
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
+          placeholder="Confirmar Senha"
+          secureTextEntry
+          onChangeText={(value) =>
+            setForm({ ...form, password_confirmation: value })
+          }
+          value={form.password_confirmation}
+          placeholderTextColor={colors.textSecondary}
+        />
+
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
           accessibilityRole="button"
@@ -165,17 +237,15 @@ export default function Register() {
         >
           <Text
             style={{
-              color: form.dataNascimento ? colors.text : colors.textSecondary,
+              color: form.birthDate ? colors.text : colors.textSecondary,
             }}
           >
-            {form.dataNascimento || 'Data de Nascimento'}
+            {form.birthDate || 'Data de Nascimento'}
           </Text>
         </TouchableOpacity>
         {showDatePicker && (
           <DateTimePicker
-            value={
-              form.dataNascimento ? parseDate(form.dataNascimento) : new Date()
-            }
+            value={form.birthDate ? parseDate(form.birthDate) : new Date()}
             mode="date"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={handleDateChange}
@@ -195,8 +265,8 @@ export default function Register() {
               color: colors.text,
             },
           ]}
-          onChangeText={(text, raw) => setForm({ ...form, telefone: raw })}
-          value={form.telefone}
+          onChangeText={(text, raw) => setForm({ ...form, phone: raw })}
+          value={form.phone}
           placeholderTextColor={colors.textSecondary}
         />
 
@@ -221,21 +291,21 @@ export default function Register() {
         <View style={styles.labelContainer}>
           <Text style={[styles.label, { color: colors.text }]}>Sexo:</Text>
           <View style={styles.radioContainer}>
-            {['M', 'F', 'O'].map((sexo) => (
+            {['M', 'F', 'O'].map((gender) => (
               <TouchableOpacity
-                key={sexo}
+                key={gender}
                 style={[
                   styles.radioButton,
                   {
                     borderColor: colors.border,
                     backgroundColor: colors.backgroundSecondary,
                   },
-                  form.sexo === sexo && {
+                  form.gender === gender && {
                     backgroundColor: colors.primary,
                     borderColor: colors.primary,
                   },
                 ]}
-                onPress={() => selectSexo(sexo)}
+                onPress={() => selectGender(gender)}
                 activeOpacity={0.8}
                 accessibilityRole="button"
               >
@@ -243,12 +313,15 @@ export default function Register() {
                   style={[
                     styles.radioButtonText,
                     { color: colors.textSecondary },
-                    form.sexo === sexo && { color: '#fff', fontWeight: 'bold' },
+                    form.gender === gender && {
+                      color: '#fff',
+                      fontWeight: 'bold',
+                    },
                   ]}
                 >
-                  {sexo === 'M'
+                  {gender === 'M'
                     ? 'Masculino'
-                    : sexo === 'F'
+                    : gender === 'F'
                       ? 'Feminino'
                       : 'Outro'}
                 </Text>
@@ -266,9 +339,9 @@ export default function Register() {
               color: colors.text,
             },
           ]}
-          placeholder="Profissão"
-          onChangeText={(value) => setForm({ ...form, profissao: value })}
-          value={form.profissao}
+          placeholder="Profissao"
+          onChangeText={(value) => setForm({ ...form, profession: value })}
+          value={form.profession}
           placeholderTextColor={colors.textSecondary}
         />
         <TextInput
@@ -280,15 +353,15 @@ export default function Register() {
               color: colors.text,
             },
           ]}
-          placeholder="Endereço"
-          onChangeText={(value) => setForm({ ...form, endereco: value })}
-          value={form.endereco}
+          placeholder="Endereco"
+          onChangeText={(value) => setForm({ ...form, address: value })}
+          value={form.address}
           placeholderTextColor={colors.textSecondary}
         />
 
         <View style={styles.labelContainer}>
           <Text style={[styles.label, { color: colors.text }]}>
-            É Administrador:
+            E Administrador:
           </Text>
           <View style={styles.radioContainer}>
             {['S', 'N'].map((isAdmin) => (
@@ -318,7 +391,7 @@ export default function Register() {
                     },
                   ]}
                 >
-                  {isAdmin === 'S' ? 'Sim' : 'Não'}
+                  {isAdmin === 'S' ? 'Sim' : 'Nao'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -327,7 +400,7 @@ export default function Register() {
 
         <View style={styles.labelContainer}>
           <Text style={[styles.label, { color: colors.text }]}>
-            É Personal Trainer:
+            E Personal Trainer:
           </Text>
           <View style={styles.radioContainer}>
             {['S', 'N'].map((isPersonal) => (
@@ -357,7 +430,7 @@ export default function Register() {
                     },
                   ]}
                 >
-                  {isPersonal === 'S' ? 'Sim' : 'Não'}
+                  {isPersonal === 'S' ? 'Sim' : 'Nao'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -376,9 +449,10 @@ export default function Register() {
           href="/(auth)/login"
           style={[styles.link, { color: colors.primary }]}
         >
-          Já estou cadastrado
+          Ja estou cadastrado
         </Link>
       </ScrollView>
+      )}
     </KeyboardAvoidingView>
   )
 }

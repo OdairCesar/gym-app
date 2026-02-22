@@ -1,36 +1,28 @@
-import { useState, useCallback } from 'react'
-import { IDiet } from '@/interfaces/Diet'
+﻿import { useState, useCallback } from 'react'
+import { Diet } from '@/interfaces/Diet'
 import { dietService } from '@/services/dietService'
 import { useApi } from './useApi'
 import { ENV } from '@/constants/environment'
+import { extractList } from '@/utils/apiUtils'
 
 interface UseDietsReturn {
-  // Estados
-  diets: IDiet[]
+  diets: Diet[]
   loading: boolean
-
-  // Funções
   fetchDiets: () => Promise<void>
-  fetchUserDiet: () => Promise<IDiet | null>
-  createDiet: (dietData: Partial<IDiet>) => Promise<boolean>
-  updateDiet: (dietId: string, dietData: Partial<IDiet>) => Promise<boolean>
-  deleteDiet: (dietId: string) => Promise<boolean>
+  fetchDietById: (dietId: number) => Promise<Diet | null>
+  fetchUserDiet: (userId: number) => Promise<Diet | null>
+  fetchDietsFiltered: (params: { userId?: number; creatorId?: number; name?: string }) => Promise<void>
+  createDiet: (dietData: Partial<Diet>) => Promise<boolean>
+  updateDiet: (dietId: number, dietData: Partial<Diet>) => Promise<boolean>
+  deleteDiet: (dietId: number) => Promise<boolean>
   refreshDiets: () => Promise<void>
-
-  // Utilitários
-  getDietById: (dietId: string) => IDiet | undefined
-  getDietsByCreator: (creatorId: string) => IDiet[]
-  filterDiets: (filters: {
-    nome?: string
-    criador?: string
-    calorias?: string
-  }) => IDiet[]
+  getDietById: (dietId: number) => Diet | undefined
+  filterDiets: (filters: { name?: string; calories?: string }) => Diet[]
 }
 
 export const useDiets = (): UseDietsReturn => {
   const { executeWithAuth } = useApi()
-
-  const [diets, setDiets] = useState<IDiet[]>([])
+  const [diets, setDiets] = useState<Diet[]>([])
   const [loading, setLoading] = useState(false)
 
   const fetchDiets = useCallback(async () => {
@@ -38,15 +30,9 @@ export const useDiets = (): UseDietsReturn => {
       setLoading(true)
       const result = await executeWithAuth(
         (token) => dietService.fetchDiets(token),
-        {
-          showErrorAlert: true,
-          errorMessage: 'Falha ao carregar dietas',
-        },
+        { showErrorAlert: true, errorMessage: 'Falha ao carregar dietas' },
       )
-
-      if (result) {
-        setDiets(result)
-      }
+      if (result) setDiets(extractList<Diet>(result))
     } catch (error) {
       console.error('Erro ao carregar dietas:', error)
     } finally {
@@ -54,28 +40,51 @@ export const useDiets = (): UseDietsReturn => {
     }
   }, [executeWithAuth])
 
-  const fetchUserDiet = useCallback(async (): Promise<IDiet | null> => {
-    try {
-      setLoading(true)
-      const result = await executeWithAuth(
-        (token) => dietService.fetchUserDiet(token),
-        {
-          showErrorAlert: true,
-          errorMessage: 'Falha ao carregar dieta do usuário',
-        },
-      )
+  const fetchDietById = useCallback(
+    async (dietId: number): Promise<Diet | null> => {
+      try {
+        const result = await executeWithAuth(
+          (token) => dietService.fetchDietById(dietId, token),
+          { showErrorAlert: true, errorMessage: 'Falha ao carregar dieta' },
+        )
+        return result || null
+      } catch (error) {
+        console.error('Erro ao carregar dieta:', error)
+        return null
+      }
+    },
+    [executeWithAuth],
+  )
 
-      return result || null
-    } catch (error) {
-      console.error('Erro ao carregar dieta do usuário:', error)
-      return null
-    } finally {
-      setLoading(false)
-    }
-  }, [executeWithAuth])
+  /**
+   * Busca a primeira dieta da lista (GET /diets já filtra pelo usuário autenticado).
+   * Fallback usado quando o User não tem dietId preenchido no AsyncStorage.
+   * Retorna o id encontrado para que a tela possa buscar o detalhe completo.
+   */
+  const fetchUserDiet = useCallback(
+    async (userId: number): Promise<Diet | null> => {
+      try {
+        const result = await executeWithAuth(
+          (token) => dietService.fetchDiets(token),
+          { showErrorAlert: false },
+        )
+        if (result) {
+          const list = extractList<Diet>(result)
+          // A API filtra por usuário autenticado, usa o primeiro da lista
+          const found = list.find((d) => d.userId === userId) ?? list[0] ?? null
+          if (found) return await fetchDietById(found.id)
+        }
+        return null
+      } catch (error) {
+        console.error('Erro ao buscar dieta do usuário:', error)
+        return null
+      }
+    },
+    [executeWithAuth, fetchDietById],
+  )
 
   const createDiet = useCallback(
-    async (dietData: Partial<IDiet>): Promise<boolean> => {
+    async (dietData: Partial<Diet>): Promise<boolean> => {
       const result = await executeWithAuth(
         (token) => dietService.createDiet(dietData, token),
         {
@@ -84,19 +93,14 @@ export const useDiets = (): UseDietsReturn => {
           errorMessage: 'Falha ao criar dieta',
         },
       )
-
-      if (result) {
-        await fetchDiets()
-        return true
-      }
-
+      if (result) { await fetchDiets(); return true }
       return false
     },
     [executeWithAuth, fetchDiets],
   )
 
   const updateDiet = useCallback(
-    async (dietId: string, dietData: Partial<IDiet>): Promise<boolean> => {
+    async (dietId: number, dietData: Partial<Diet>): Promise<boolean> => {
       const result = await executeWithAuth(
         (token) => dietService.updateDiet(dietId, dietData, token),
         {
@@ -105,19 +109,14 @@ export const useDiets = (): UseDietsReturn => {
           errorMessage: 'Falha ao atualizar dieta',
         },
       )
-
-      if (result) {
-        await fetchDiets()
-        return true
-      }
-
+      if (result) { await fetchDiets(); return true }
       return false
     },
     [executeWithAuth, fetchDiets],
   )
 
   const deleteDiet = useCallback(
-    async (dietId: string): Promise<boolean> => {
+    async (dietId: number): Promise<boolean> => {
       const result = await executeWithAuth(
         (token) => dietService.deleteDiet(dietId, token),
         {
@@ -126,63 +125,42 @@ export const useDiets = (): UseDietsReturn => {
           errorMessage: 'Falha ao deletar dieta',
         },
       )
-
-      if (result) {
-        await fetchDiets()
-        return true
-      }
-
+      if (result !== null) { await fetchDiets(); return true }
       return false
     },
     [executeWithAuth, fetchDiets],
   )
 
-  const refreshDiets = useCallback(async () => {
-    await fetchDiets()
-  }, [fetchDiets])
-
-  // Funções utilitárias
-  const getDietById = useCallback(
-    (dietId: string): IDiet | undefined => {
-      return dietService.getDietById(diets, dietId)
+  const fetchDietsFiltered = useCallback(
+    async (params: { userId?: number; creatorId?: number; name?: string }) => {
+      try {
+        setLoading(true)
+        const result = await executeWithAuth(
+          (token) => dietService.fetchDietsFiltered(params, token),
+          { showErrorAlert: true, errorMessage: 'Falha ao filtrar dietas' },
+        )
+        if (result) setDiets(extractList<Diet>(result))
+      } catch (error) {
+        console.error('Erro ao filtrar dietas:', error)
+      } finally {
+        setLoading(false)
+      }
     },
-    [diets],
+    [executeWithAuth],
   )
 
-  const getDietsByCreator = useCallback(
-    (creatorId: string): IDiet[] => {
-      return dietService.getDietsByCreator(diets, creatorId)
-    },
+  const refreshDiets = useCallback(async () => { await fetchDiets() }, [fetchDiets])
+
+  const getDietById = useCallback(
+    (dietId: number): Diet | undefined => dietService.getDietById(diets, dietId),
     [diets],
   )
 
   const filterDiets = useCallback(
-    (filters: {
-      nome?: string
-      criador?: string
-      calorias?: string
-    }): IDiet[] => {
-      return dietService.filterDiets(diets, filters)
-    },
+    (filters: { name?: string; calories?: string }): Diet[] =>
+      dietService.filterDiets(diets, filters),
     [diets],
   )
 
-  return {
-    // Estados
-    diets,
-    loading,
-
-    // Funções
-    fetchDiets,
-    fetchUserDiet,
-    createDiet,
-    updateDiet,
-    deleteDiet,
-    refreshDiets,
-
-    // Utilitários
-    getDietById,
-    getDietsByCreator,
-    filterDiets,
-  }
+  return { diets, loading, fetchDiets, fetchDietById, fetchUserDiet, fetchDietsFiltered, createDiet, updateDiet, deleteDiet, refreshDiets, getDietById, filterDiets }
 }

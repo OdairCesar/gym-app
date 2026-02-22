@@ -116,20 +116,6 @@ export default function AdminLayoutNav() {
             }}
           />
           <Tabs.Screen
-            name="products"
-            options={{
-              headerShown: false,
-              title: 'Produtos',
-              tabBarIcon: ({ color }) => (
-                <TabBarIcon
-                  name="package-variant"
-                  color={color}
-                  type="material-community"
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
             name="perfil"
             options={{
               headerShown: false,
@@ -141,6 +127,45 @@ export default function AdminLayoutNav() {
                   type="material-community"
                 />
               ),
+            }}
+          />
+          <Tabs.Screen
+            name="mais"
+            options={{
+              headerShown: false,
+              title: 'Mais',
+              tabBarIcon: ({ color }) => (
+                <TabBarIcon
+                  name="dots-horizontal-circle"
+                  color={color}
+                  type="material-community"
+                />
+              ),
+            }}
+          />
+          {/* Rotas acessíveis via "Mais" — ocultas da tab bar */}
+          <Tabs.Screen
+            name="products"
+            options={{
+              headerShown: false,
+              title: 'Produtos',
+              tabBarItemStyle: { display: 'none' },
+            }}
+          />
+          <Tabs.Screen
+            name="gyms"
+            options={{
+              headerShown: false,
+              title: 'Academias',
+              tabBarItemStyle: { display: 'none' },
+            }}
+          />
+          <Tabs.Screen
+            name="permissions"
+            options={{
+              headerShown: false,
+              title: 'Permissões',
+              tabBarItemStyle: { display: 'none' },
             }}
           />
         </Tabs>

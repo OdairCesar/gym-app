@@ -1,16 +1,17 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
-import { IMeal } from '@/interfaces/Diet'
+import { Meal } from '@/interfaces/Meal'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface MealListProps {
-  meals: IMeal[]
+  meals: Meal[]
   onAdd: () => void
-  onRemove: (index: number) => void
+  onRemove: (mealId: number) => void
+  onSelect?: (meal: Meal) => void
 }
 
-export default function MealList({ meals, onAdd, onRemove }: MealListProps) {
+export default function MealList({ meals, onAdd, onRemove, onSelect }: MealListProps) {
   const { colors } = useAppTheme()
 
   const styles = StyleSheet.create({
@@ -141,42 +142,37 @@ export default function MealList({ meals, onAdd, onRemove }: MealListProps) {
     },
   })
 
-  const renderMealItem = ({ item, index }: { item: IMeal; index: number }) => (
-    <View style={styles.mealItem}>
+  const renderMealItem = ({ item }: { item: Meal }) => (
+    <TouchableOpacity
+      style={styles.mealItem}
+      onPress={() => onSelect && onSelect(item)}
+      activeOpacity={onSelect ? 0.7 : 1}
+    >
       <View style={styles.mealContent}>
         <View style={styles.mealHeader}>
-          <Text style={styles.mealName}>{item.nome}</Text>
-          {item.horario && (
+          <Text style={styles.mealName}>{item.name}</Text>
+          {item.hourly && (
             <View style={styles.timeContainer}>
               <MaterialIcons name="schedule" size={14} color="#666" />
-              <Text style={styles.mealTime}>{item.horario}</Text>
+              <Text style={styles.mealTime}>{item.hourly}</Text>
             </View>
           )}
         </View>
 
-        {item.descricao && (
+        {item.description && (
           <Text style={styles.mealDescription} numberOfLines={2}>
-            {item.descricao}
+            {item.description}
           </Text>
         )}
-
-        <View style={styles.foodsContainer}>
-          <Text style={styles.foodsTitle}>
-            Alimentos ({item.alimentos.length}):
-          </Text>
-          <Text style={styles.foodsList} numberOfLines={2}>
-            {item.alimentos.join(', ')}
-          </Text>
-        </View>
       </View>
 
       <TouchableOpacity
         style={styles.removeButton}
-        onPress={() => onRemove(index)}
+        onPress={() => onRemove(item.id)}
       >
         <MaterialIcons name="delete" size={20} color="#FF3B30" />
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   )
 
   return (
@@ -199,9 +195,9 @@ export default function MealList({ meals, onAdd, onRemove }: MealListProps) {
         </View>
       ) : (
         <View style={styles.list}>
-          {meals.map((item, index) => (
-            <View key={`meal-${index}-${item.nome}`}>
-              {renderMealItem({ item, index })}
+          {meals.map((item) => (
+            <View key={`meal-${item.id}`}>
+              {renderMealItem({ item })}
             </View>
           ))}
         </View>

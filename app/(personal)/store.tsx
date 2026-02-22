@@ -1,85 +1,86 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   View,
   Text,
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  Alert,
   RefreshControl,
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { MaterialIcons } from '@expo/vector-icons'
 
 import { useProducts } from '@/hooks/useProducts'
-import { Product } from '@/interfaces/Product'
+import { useAppTheme } from '@/hooks/useAppTheme'
+import { useGyms } from '@/hooks/useGyms'
 import { ProductCard } from '@/components/common/ProductCard'
+import PageHeader from '@/components/common/PageHeader'
 
 export default function StoreScreen() {
   const { products, loading, fetchProducts } = useProducts()
+  const { colors } = useAppTheme()
+  const { gyms, fetchGyms } = useGyms()
   const [refreshing, setRefreshing] = useState<boolean>(false)
+
+  const gymPhone = gyms[0]?.phone
 
   const onRefresh = async () => {
     setRefreshing(true)
-    await fetchProducts()
+    await Promise.all([fetchProducts(), fetchGyms()])
     setRefreshing(false)
   }
-
-  const handleBuyProduct = (product: Product) => {
-    Alert.alert('Produto Selecionado', `Você selecionou: ${product.nome}`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Comprar', onPress: () => console.log('Comprar produto') },
-    ])
-  }
-
-  useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
 
   useFocusEffect(
     useCallback(() => {
       fetchProducts()
-    }, [fetchProducts]),
+      fetchGyms()
+    }, [fetchProducts, fetchGyms]),
   )
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0a84ff" />
-        <Text style={styles.loadingText}>Carregando produtos...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>
+          Carregando produtos...
+        </Text>
       </View>
     )
   }
 
-  if (products.length === 0) {
+  if (!loading && products.length === 0) {
     return (
-      <View style={styles.centered}>
-        <MaterialIcons name="store" size={48} color="#999" />
-        <Text style={styles.emptyText}>Nenhum produto encontrado</Text>
-        <Text style={styles.emptySubText}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <MaterialIcons name="store" size={48} color={colors.textSecondary} />
+        <Text style={[styles.emptyText, { color: colors.text }]}>
+          Nenhum produto encontrado
+        </Text>
+        <Text style={[styles.emptySubText, { color: colors.textSecondary }]}>
           Produtos estarão disponíveis em breve!
         </Text>
       </View>
     )
   }
 
-  const renderProduct = ({ item }: { item: Product }) => (
-    <ProductCard product={item} onBuy={handleBuyProduct} />
-  )
-
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <PageHeader title="Loja" />
       <FlatList
         data={products}
-        keyExtractor={(item) => item._id}
-        renderItem={renderProduct}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <ProductCard product={item} gymPhone={gymPhone} />
+        )}
         contentContainerStyle={styles.listContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
         showsVerticalScrollIndicator={false}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
       />
     </View>
   )
@@ -88,13 +89,9 @@ export default function StoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   listContainer: {
     padding: 16,
-  },
-  row: {
-    justifyContent: 'space-between',
   },
   centered: {
     flex: 1,
@@ -105,18 +102,15 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#666',
     marginTop: 12,
     textAlign: 'center',
   },
   emptySubText: {
     fontSize: 14,
-    color: '#999',
     marginTop: 8,
     textAlign: 'center',
   },

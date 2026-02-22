@@ -27,10 +27,7 @@ export default function ChangePasswordScreen() {
       return
     }
 
-    const success = await changePassword({
-      currentPassword: form.current,
-      newPassword: form.new,
-    })
+    const success = await changePassword(form.current, form.new)
 
     if (success) {
       router.back()

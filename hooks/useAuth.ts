@@ -6,8 +6,8 @@ import {
   authService,
   LoginRequest,
   RegisterRequest,
-  ChangePasswordRequest,
 } from '@/services/authService'
+import { userService } from '@/services/userService'
 import { User } from '@/interfaces/User'
 import { ENV } from '@/constants/environment'
 
@@ -30,10 +30,16 @@ export const useAuth = () => {
         await AsyncStorage.setItem('userToken', result.token)
         await AsyncStorage.setItem('userData', JSON.stringify(result.user))
 
-        // Redirecionar baseado no tipo do usuário
-        if (result.user.isAdmin) {
+        // A API retorna `role` (snake_case). Suportamos ambos os formatos.
+        const rawUser = result.user as unknown as Record<string, unknown>
+        const role = String(rawUser.role ?? '')
+        const isAdmin =
+          role === 'admin' || role === 'super' || !!rawUser.isAdmin
+        const isPersonal = role === 'personal' || !!rawUser.isPersonal
+
+        if (isAdmin) {
           router.replace('/(admin)/users')
-        } else if (result.user.isPersonal) {
+        } else if (isPersonal) {
           router.replace('/(personal)/trainings')
         } else {
           router.replace('/(client)/training')
@@ -68,10 +74,21 @@ export const useAuth = () => {
     [executeWithoutAuth, router],
   )
 
+  const logout = useCallback(async (): Promise<void> => {
+    await executeWithAuth((token) => authService.logout(token), {
+      showSuccessAlert: false,
+      showErrorAlert: false,
+    }).catch(() => {})
+    await AsyncStorage.removeItem('userToken')
+    await AsyncStorage.removeItem('userData')
+    router.replace('/(auth)/login')
+  }, [executeWithAuth, router])
+
   const changePassword = useCallback(
-    async (passwordData: ChangePasswordRequest): Promise<boolean> => {
+    async (currentPassword: string, newPassword: string): Promise<boolean> => {
       const result = await executeWithAuth(
-        (token) => authService.changePassword(passwordData, token),
+        (token) =>
+          userService.changePassword(currentPassword, newPassword, token),
         {
           showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Senha alterada com sucesso',
@@ -85,9 +102,9 @@ export const useAuth = () => {
   )
 
   const updateProfile = useCallback(
-    async (userData: Partial<User>): Promise<boolean> => {
+    async (userId: number, userData: Partial<User>): Promise<boolean> => {
       const result = await executeWithAuth(
-        (token) => authService.updateCurrentUser(userData, token),
+        (token) => userService.updateUser(userId, userData, token),
         {
           showSuccessAlert: ENV.showSuccessAlerts,
           successMessage: 'Perfil atualizado com sucesso',
@@ -116,9 +133,23 @@ export const useAuth = () => {
     )
 
     if (result) {
-      // Atualizar dados locais
-      await AsyncStorage.setItem('userData', JSON.stringify(result))
-      return result
+      // GET /auth/me pode retornar { user: {...} } como wrapper
+      const userData =
+        (result as unknown as Record<string, unknown>).user ?? result
+      const baseUser = userData as User
+
+      // Busca dados completos via /users/:id para obter gym embutido
+      const fullUser = await executeWithAuth(
+        (token) => userService.fetchUserById(baseUser.id, token),
+        { showErrorAlert: false },
+      )
+
+      const enrichedUser: User = fullUser
+        ? { ...baseUser, gym: (fullUser as User).gym }
+        : baseUser
+
+      await AsyncStorage.setItem('userData', JSON.stringify(enrichedUser))
+      return enrichedUser
     }
 
     return null
@@ -127,6 +158,7 @@ export const useAuth = () => {
   return {
     login,
     register,
+    logout,
     changePassword,
     updateProfile,
     fetchCurrentUser,

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native'
 import { Link } from 'expo-router'
 import { useAuth } from '@/hooks/useAuth'
@@ -14,15 +15,18 @@ import { useAppTheme } from '@/hooks/useAppTheme'
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const { colors } = useAppTheme()
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (!email || !password || loading) {
       return
     }
 
+    setLoading(true)
     await login({ email, password })
+    setLoading(false)
   }
 
   return (
@@ -68,10 +72,18 @@ export default function LoginScreen() {
       />
 
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: colors.primary }]}
+        style={[
+          styles.button,
+          { backgroundColor: loading ? colors.textSecondary : colors.primary },
+        ]}
         onPress={handleLogin}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>Entrar</Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Entrar</Text>
+        )}
       </TouchableOpacity>
 
       <Link

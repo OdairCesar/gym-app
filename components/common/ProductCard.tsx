@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Linking,
 } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 
@@ -14,76 +15,130 @@ import { Product } from '@/interfaces/Product'
 
 interface ProductCardProps {
   product: Product
-  onBuy: (product: Product) => void
+  gymPhone?: string
+  onBuy?: (product: Product) => void
 }
 
-export function ProductCard({ product, onBuy }: ProductCardProps) {
+const CATEGORY_LABELS: Record<string, string> = {
+  suplemento: 'Suplemento',
+  vestuario: 'Vestuário',
+  acessorio: 'Acessório',
+  equipamento: 'Equipamento',
+}
+
+/**
+ * Normaliza um telefone brasileiro para o formato internacional sem "+".
+ * Regras:
+ *  1. Remove tudo que não for dígito
+ *  2. Se já começar com "55" e tiver 12+ dígitos, assume que o DDI está presente
+ *  3. Caso contrário, prefixa com "55" (Brasil)
+ *
+ * Exemplos:
+ *  "(11) 98765-4321" → "5511987654321"
+ *  "11 9876-5432"   → "55119876543" (8 dígitos + DDD)
+ *  "11987654321"    → "5511987654321"
+ *  "5511987654321"  → "5511987654321" (já tinha DDI)
+ */
+function normalizeWhatsAppPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  if (digits.startsWith('55') && digits.length >= 12) return digits
+  return `55${digits}`
+}
+
+export const ProductCard = React.memo(function ProductCard({
+  product,
+  gymPhone,
+  onBuy,
+}: ProductCardProps) {
   const { colors } = useAppTheme()
+  const available = product.stock > 0
+  const price = Number(product.price).toFixed(2)
 
   const handleBuyProduct = () => {
-    Alert.alert(
-      'Comprar Produto',
-      `Deseja comprar ${product.nome} por R$ ${product.preco.toFixed(2)}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Comprar',
-          onPress: () => onBuy(product),
-        },
-      ],
-    )
+    if (!available) return
+
+    if (gymPhone) {
+      const phone = normalizeWhatsAppPhone(gymPhone)
+      const message = `Olá! Tenho interesse em comprar o produto *${product.name}* por R$ ${price}. Poderia me ajudar?`
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+      Linking.openURL(url).catch(() =>
+        Alert.alert('Erro', 'Não foi possível abrir o WhatsApp.'),
+      )
+    } else if (onBuy) {
+      onBuy(product)
+    } else {
+      Alert.alert('Atenção', 'Contato da academia não disponível.')
+    }
   }
 
   return (
     <View
       style={[
-        styles.productCard,
+        styles.card,
         {
           backgroundColor: colors.backgroundSecondary,
           borderColor: colors.border,
         },
       ]}
     >
-      {product.imagem ? (
-        <Image
-          source={{ uri: product.imagem }}
-          style={styles.productImage}
-          alt={product.nome}
-        />
+      {/* Imagem */}
+      {product.image_link ? (
+        <Image source={{ uri: product.image_link }} style={styles.image} />
       ) : (
         <View
           style={[
-            styles.placeholderImage,
+            styles.imagePlaceholder,
             { backgroundColor: colors.background },
           ]}
         >
-          <MaterialIcons name="image" size={40} color={colors.textSecondary} />
+          <MaterialIcons
+            name="shopping-bag"
+            size={32}
+            color={colors.textSecondary}
+          />
         </View>
       )}
 
-      <View style={styles.productInfo}>
-        <Text style={[styles.productName, { color: colors.text }]}>
-          {product.nome}
-        </Text>
-        <Text style={[styles.productCategory, { color: colors.primary }]}>
-          {product.categoria}
-        </Text>
-        <Text
-          style={[styles.productDescription, { color: colors.textSecondary }]}
-          numberOfLines={2}
+      {/* ConteÃºdo */}
+      <View style={styles.content}>
+        {/* Badge de categoria */}
+        <View
+          style={[
+            styles.categoryBadge,
+            { backgroundColor: colors.primary + '18' },
+          ]}
         >
-          {product.descricao}
+          <Text style={[styles.categoryText, { color: colors.primary }]}>
+            {CATEGORY_LABELS[product.category] ?? product.category}
+          </Text>
+        </View>
+
+        <Text style={[styles.name, { color: colors.text }]} numberOfLines={2}>
+          {product.name}
         </Text>
 
-        <View style={styles.productFooter}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.productPrice, { color: colors.success }]}>
-              R$ {product.preco.toFixed(2)}
+        {product.description ? (
+          <Text
+            style={[styles.description, { color: colors.textSecondary }]}
+            numberOfLines={2}
+          >
+            {product.description}
+          </Text>
+        ) : null}
+
+        {/* RodapÃ©: preÃ§o + botÃ£o */}
+        <View style={styles.footer}>
+          <View>
+            <Text style={[styles.price, { color: colors.success }]}>
+              R$ {price}
             </Text>
-            <Text style={[styles.stockText, { color: colors.textSecondary }]}>
-              {product.estoque > 0
-                ? `${product.estoque} em estoque`
-                : 'Indisponível'}
+            <Text
+              style={[
+                styles.stock,
+                { color: available ? colors.textSecondary : colors.danger },
+              ]}
+            >
+              {available ? `${product.stock} em estoque` : 'Indisponível'}
             </Text>
           </View>
 
@@ -91,108 +146,109 @@ export function ProductCard({ product, onBuy }: ProductCardProps) {
             style={[
               styles.buyButton,
               {
-                backgroundColor:
-                  product.estoque > 0 ? colors.primary : colors.background,
-              },
-              product.estoque === 0 && {
-                borderWidth: 1,
-                borderColor: colors.border,
+                backgroundColor: available ? colors.primary : colors.background,
+                borderColor: available ? colors.primary : colors.border,
               },
             ]}
             onPress={handleBuyProduct}
-            disabled={product.estoque === 0}
+            disabled={!available}
+            activeOpacity={0.8}
           >
             <MaterialIcons
-              name={
-                product.estoque > 0 ? 'shopping-cart' : 'remove-shopping-cart'
-              }
-              size={20}
-              color={product.estoque > 0 ? '#fff' : colors.textSecondary}
+              name={available ? 'add-shopping-cart' : 'remove-shopping-cart'}
+              size={18}
+              color={available ? '#fff' : colors.textSecondary}
             />
             <Text
               style={[
                 styles.buyButtonText,
-                {
-                  color: product.estoque > 0 ? '#fff' : colors.textSecondary,
-                },
+                { color: available ? '#fff' : colors.textSecondary },
               ]}
             >
-              {product.estoque > 0 ? 'Comprar' : 'Indisponível'}
+              {available ? 'Pedir' : 'Esgotado'}
             </Text>
           </TouchableOpacity>
         </View>
       </View>
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
-  productCard: {
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    width: '48%',
-    overflow: 'hidden',
+  card: {
+    flexDirection: 'row',
+    borderRadius: 14,
     borderWidth: 1,
+    marginBottom: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
-  productImage: {
-    width: '100%',
-    height: 120,
+  image: {
+    width: 100,
+    height: '100%',
     resizeMode: 'cover',
   },
-  placeholderImage: {
-    width: '100%',
-    height: 120,
+  imagePlaceholder: {
+    width: 100,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 120,
   },
-  productInfo: {
-    padding: 12,
+  content: {
+    flex: 1,
+    padding: 14,
+    gap: 6,
   },
-  productName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
+  categoryBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
   },
-  productCategory: {
-    fontSize: 12,
+  categoryText: {
+    fontSize: 11,
+    fontWeight: '700',
     textTransform: 'uppercase',
-    fontWeight: '600',
-    marginBottom: 6,
+    letterSpacing: 0.5,
   },
-  productDescription: {
-    fontSize: 14,
+  name: {
+    fontSize: 15,
+    fontWeight: '700',
     lineHeight: 20,
-    marginBottom: 12,
   },
-  productFooter: {
-    marginTop: 'auto',
+  description: {
+    fontSize: 13,
+    lineHeight: 18,
   },
-  priceContainer: {
-    marginBottom: 12,
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
   },
-  productPrice: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 2,
+  price: {
+    fontSize: 17,
+    fontWeight: '800',
   },
-  stockText: {
+  stock: {
     fontSize: 12,
+    marginTop: 1,
   },
   buyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 6,
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   buyButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
   },
 })

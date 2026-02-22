@@ -4,85 +4,87 @@ import { Product } from '@/interfaces/Product'
 
 export class ProductService {
   async fetchProducts(token: string): Promise<ApiResponse<Product[]>> {
-    return apiService.get<Product[]>(API_ENDPOINTS.PRODUCT, token)
+    return apiService.get<Product[]>(API_ENDPOINTS.PRODUCTS, token)
   }
 
   async createProduct(
     productData: Partial<Product>,
     token: string,
   ): Promise<ApiResponse<Product>> {
-    return apiService.post<Product>(API_ENDPOINTS.PRODUCT, productData, token)
+    return apiService.post<Product>(API_ENDPOINTS.PRODUCTS, productData, token)
   }
 
   async updateProduct(
-    productId: string,
+    productId: number,
     productData: Partial<Product>,
     token: string,
   ): Promise<ApiResponse<Product>> {
     return apiService.put<Product>(
-      `${API_ENDPOINTS.PRODUCT}/${productId}`,
+      API_ENDPOINTS.PRODUCT_BY_ID(productId),
       productData,
       token,
     )
   }
 
   async deleteProduct(
-    productId: string,
+    productId: number,
     token: string,
   ): Promise<ApiResponse<void>> {
     return apiService.delete<void>(
-      `${API_ENDPOINTS.PRODUCT}/${productId}`,
+      API_ENDPOINTS.PRODUCT_BY_ID(productId),
       token,
     )
   }
 
   async getProductById(
-    productId: string,
+    productId: number,
     token: string,
   ): Promise<ApiResponse<Product>> {
     return apiService.get<Product>(
-      `${API_ENDPOINTS.PRODUCT}/${productId}`,
+      API_ENDPOINTS.PRODUCT_BY_ID(productId),
       token,
     )
   }
 
-  // Utilitários locais
-  getProductByIdLocal(
-    products: Product[],
-    productId: string,
-  ): Product | undefined {
-    return products.find((product) => product._id === productId)
+  async updateStock(
+    productId: number,
+    stock: number,
+    token: string,
+  ): Promise<ApiResponse<Product>> {
+    return apiService.patch<Product>(
+      API_ENDPOINTS.PRODUCT_STOCK(productId),
+      { stock },
+      token,
+    )
   }
 
   filterProducts(
     products: Product[],
     filters: {
-      nome?: string
-      categoria?: string
-      preco?: { min?: number; max?: number }
+      name?: string
+      category?: string
+      price?: { min?: number; max?: number }
     },
   ): Product[] {
     return products.filter((product) => {
       if (
-        filters.nome &&
-        !product.nome.toLowerCase().includes(filters.nome.toLowerCase())
+        filters.name &&
+        !product.name.toLowerCase().includes(filters.name.toLowerCase())
       ) {
         return false
       }
-      if (filters.categoria && product.categoria !== filters.categoria) {
+      if (filters.category && product.category !== filters.category) {
         return false
       }
-      if (filters.preco) {
+      if (filters.price) {
         const price =
-          typeof product.preco === 'number'
-            ? product.preco
-            : parseFloat(product.preco)
-        if (filters.preco.min && price < filters.preco.min) {
+          typeof product.price === 'number'
+            ? product.price
+            : parseFloat(String(product.price))
+        if (filters.price.min !== undefined && price < filters.price.min)
           return false
-        }
-        if (filters.preco.max && price > filters.preco.max) {
+        if (filters.price.max !== undefined && price > filters.price.max)
           return false
-        }
       }
       return true
     })

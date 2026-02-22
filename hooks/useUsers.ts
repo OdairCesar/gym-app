@@ -4,6 +4,7 @@ import { User } from '@/interfaces/User'
 import { userService } from '@/services/userService'
 import { useApi } from './useApi'
 import { ENV } from '@/constants/environment'
+import { extractList } from '@/utils/apiUtils'
 
 interface UseUsersReturn {
   // Estados
@@ -19,24 +20,29 @@ interface UseUsersReturn {
   fetchUsers: () => Promise<void>
   fetchCurrentUser: () => Promise<void>
   createUser: (userData: Partial<User>) => Promise<boolean>
-  updateUser: (userId: string, userData: Partial<User>) => Promise<boolean>
-  deleteUser: (userId: string) => Promise<boolean>
+  updateUser: (userId: number, userData: Partial<User>) => Promise<boolean>
+  deleteUser: (userId: number) => Promise<boolean>
   refreshUsers: () => Promise<void>
-  assignDietToClient: (clientId: string, dietId: string) => Promise<boolean>
+  assignDietToClient: (clientId: number, dietId: number) => Promise<boolean>
   assignTrainingToClient: (
-    clientId: string,
-    trainingId: string,
+    clientId: number,
+    trainingId: number,
   ) => Promise<boolean>
 
+  // Aprovação
+  pendingUsers: User[]
+  fetchPendingUsers: () => Promise<void>
+  approveUser: (userId: number) => Promise<boolean>
+  rejectUser: (userId: number) => Promise<boolean>
+
   // Utilitários
-  getPersonalName: (personalId: string) => string
-  getClientName: (clientId: string) => string
+  getPersonalName: (personalId: number) => string
+  getClientName: (clientId: number) => string
   filterUsers: (filters: {
-    nome?: string
+    name?: string
     email?: string
-    sexo?: string
-    isAdmin?: boolean
-    isPersonal?: boolean
+    gender?: string
+    role?: string
     isActive?: boolean
   }) => User[]
 }
@@ -48,6 +54,7 @@ export const useUsers = (): UseUsersReturn => {
   const [personals, setPersonals] = useState<User[]>([])
   const [clients, setClients] = useState<User[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [pendingUsers, setPendingUsers] = useState<User[]>([])
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -63,7 +70,9 @@ export const useUsers = (): UseUsersReturn => {
       )
 
       if (result) {
-        const personalsData = userService.getPersonals(result)
+        const personalsData = userService.getPersonals(
+          extractList<User>(result),
+        )
         setPersonals(personalsData)
       }
     } catch (error) {
@@ -85,7 +94,7 @@ export const useUsers = (): UseUsersReturn => {
       )
 
       if (result) {
-        const clientsData = userService.getClients(result)
+        const clientsData = userService.getClients(extractList<User>(result))
         setClients(clientsData)
       }
     } catch (error) {
@@ -118,7 +127,7 @@ export const useUsers = (): UseUsersReturn => {
       )
 
       if (result) {
-        setUsers(result)
+        setUsers(extractList<User>(result))
       }
     } catch (error) {
       console.error('Erro ao carregar usuários:', error)
@@ -149,7 +158,7 @@ export const useUsers = (): UseUsersReturn => {
   )
 
   const updateUser = useCallback(
-    async (userId: string, userData: Partial<User>): Promise<boolean> => {
+    async (userId: number, userData: Partial<User>): Promise<boolean> => {
       const result = await executeWithAuth(
         (token) => userService.updateUser(userId, userData, token),
         {
@@ -170,7 +179,7 @@ export const useUsers = (): UseUsersReturn => {
   )
 
   const deleteUser = useCallback(
-    async (userId: string): Promise<boolean> => {
+    async (userId: number): Promise<boolean> => {
       const result = await executeWithAuth(
         (token) => userService.deleteUser(userId, token),
         {
@@ -190,12 +199,68 @@ export const useUsers = (): UseUsersReturn => {
     [executeWithAuth, fetchUsers],
   )
 
+  const fetchPendingUsers = useCallback(async () => {
+    try {
+      setLoading(true)
+      const result = await executeWithAuth(
+        (token) => userService.fetchPendingUsers(token),
+        {
+          showErrorAlert: true,
+          errorMessage: 'Falha ao carregar usuários pendentes',
+        },
+      )
+      if (result) setPendingUsers(extractList<User>(result))
+    } catch (error) {
+      console.error('Erro ao carregar usuários pendentes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [executeWithAuth])
+
+  const approveUser = useCallback(
+    async (userId: number): Promise<boolean> => {
+      const result = await executeWithAuth(
+        (token) => userService.approveUser(userId, token),
+        {
+          showSuccessAlert: ENV.showSuccessAlerts,
+          successMessage: 'Usuário aprovado com sucesso',
+          errorMessage: 'Falha ao aprovar usuário',
+        },
+      )
+      if (result !== null) {
+        await fetchPendingUsers()
+        return true
+      }
+      return false
+    },
+    [executeWithAuth, fetchPendingUsers],
+  )
+
+  const rejectUser = useCallback(
+    async (userId: number): Promise<boolean> => {
+      const result = await executeWithAuth(
+        (token) => userService.rejectUser(userId, token),
+        {
+          showSuccessAlert: ENV.showSuccessAlerts,
+          successMessage: 'Usuário rejeitado',
+          errorMessage: 'Falha ao rejeitar usuário',
+        },
+      )
+      if (result !== null) {
+        await fetchPendingUsers()
+        return true
+      }
+      return false
+    },
+    [executeWithAuth, fetchPendingUsers],
+  )
+
   const refreshUsers = useCallback(async () => {
     await Promise.all([fetchPersonals(), fetchClients(), fetchCurrentUser()])
   }, [fetchPersonals, fetchClients, fetchCurrentUser])
 
   const assignDietToClient = useCallback(
-    async (clientId: string, dietId: string): Promise<boolean> => {
+    async (clientId: number, dietId: number): Promise<boolean> => {
       const result = await executeWithAuth(
         (token) => userService.assignDietToUser(clientId, dietId, token),
         {
@@ -216,7 +281,7 @@ export const useUsers = (): UseUsersReturn => {
   )
 
   const assignTrainingToClient = useCallback(
-    async (clientId: string, trainingId: string): Promise<boolean> => {
+    async (clientId: number, trainingId: number): Promise<boolean> => {
       const result = await executeWithAuth(
         (token) =>
           userService.assignTrainingToUser(clientId, trainingId, token),
@@ -237,34 +302,33 @@ export const useUsers = (): UseUsersReturn => {
     [executeWithAuth, fetchClients],
   )
   const getPersonalName = useCallback(
-    (personalId: string): string => {
-      const personal = userService.getUserById(personals, personalId)
-      return personal?.nome || 'Personal não encontrado'
+    (personalId: number): string => {
+      const personal = personals.find((p) => p.id === personalId)
+      return personal?.name || 'Personal não encontrado'
     },
     [personals],
   )
 
   const getClientName = useCallback(
-    (clientId: string): string => {
-      const client = userService.getUserById(clients, clientId)
-      return client?.nome || 'Cliente não encontrado'
+    (clientId: number): string => {
+      const client = clients.find((c) => c.id === clientId)
+      return client?.name || 'Cliente não encontrado'
     },
     [clients],
   )
 
   const filterUsers = useCallback(
     (filters: {
-      nome?: string
+      name?: string
       email?: string
-      sexo?: string
-      isAdmin?: boolean
-      isPersonal?: boolean
+      gender?: string
+      role?: string
       isActive?: boolean
     }): User[] => {
       return users.filter((user) => {
         if (
-          filters.nome &&
-          !user.nome.toLowerCase().includes(filters.nome.toLowerCase())
+          filters.name &&
+          !user.name.toLowerCase().includes(filters.name.toLowerCase())
         ) {
           return false
         }
@@ -274,21 +338,15 @@ export const useUsers = (): UseUsersReturn => {
         ) {
           return false
         }
-        if (filters.sexo && user.sexo !== filters.sexo) {
+        if (filters.gender && user.gender !== filters.gender) {
           return false
         }
-        if (filters.isAdmin !== undefined && user.isAdmin !== filters.isAdmin) {
-          return false
-        }
-        if (
-          filters.isPersonal !== undefined &&
-          user.isPersonal !== filters.isPersonal
-        ) {
+        if (filters.role && user.role !== filters.role) {
           return false
         }
         if (
           filters.isActive !== undefined &&
-          user.isActive !== filters.isActive
+          Boolean(user.approved) !== filters.isActive
         ) {
           return false
         }
@@ -303,6 +361,7 @@ export const useUsers = (): UseUsersReturn => {
     personals,
     clients,
     users,
+    pendingUsers,
     currentUser,
     loading,
 
@@ -317,6 +376,11 @@ export const useUsers = (): UseUsersReturn => {
     refreshUsers,
     assignDietToClient,
     assignTrainingToClient,
+
+    // Aprovação
+    fetchPendingUsers,
+    approveUser,
+    rejectUser,
 
     // Utilitários
     getPersonalName,

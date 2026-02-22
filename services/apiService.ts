@@ -4,6 +4,8 @@ export interface ApiResponse<T> {
   status: 'success' | 'error'
   data?: T
   message?: string
+  statusCode?: number
+  validationErrors?: { field: string; message: string }[]
 }
 
 export class ApiService {
@@ -44,6 +46,83 @@ export class ApiService {
       return sanitized
     }
     return data
+  }
+
+  private getHttpErrorMessage(status: number, serverMessage?: string): string {
+    switch (status) {
+      case 400:
+        return serverMessage || 'Requisição inválida'
+      case 401:
+        return 'Sessão expirada. Faça login novamente'
+      case 403:
+        return 'Sem permissão para realizar esta ação'
+      case 404:
+        return serverMessage || 'Recurso não encontrado'
+      case 409:
+        return serverMessage || 'Conflito: o recurso já existe'
+      case 422:
+        return serverMessage || 'Dados inválidos. Verifique os campos'
+      case 429:
+        return 'Muitas requisições. Aguarde um momento'
+      case 500:
+        return 'Erro interno no servidor. Tente novamente'
+      case 503:
+        return 'Serviço temporariamente indisponível'
+      default:
+        return serverMessage || `Erro ${status}`
+    }
+  }
+
+  private extractValidationErrors(
+    data: unknown,
+  ): { field: string; message: string }[] {
+    if (
+      typeof data === 'object' &&
+      data !== null &&
+      'errors' in data &&
+      Array.isArray((data as { errors: unknown }).errors)
+    ) {
+      const rawErrors = (data as { errors: unknown[] }).errors
+      return rawErrors
+        .map((e) => {
+          if (typeof e === 'object' && e !== null) {
+            const err = e as Record<string, unknown>
+            return {
+              field: String(err.field || err.path || 'campo'),
+              message: String(err.message || err.msg || 'Valor inválido'),
+            }
+          }
+          return null
+        })
+        .filter(Boolean) as { field: string; message: string }[]
+    }
+    return []
+  }
+
+  private toCamelCase(key: string): string {
+    return key.replace(/_([a-z])/g, (_, letter: string) =>
+      letter.toUpperCase(),
+    )
+  }
+
+  /**
+   * Converte todas as chaves snake_case para camelCase recursivamente.
+   * Aplicado em todas as respostas da API para uniformidade.
+   */
+  private normalizeKeys(value: unknown): unknown {
+    if (Array.isArray(value)) {
+      return value.map((item) => this.normalizeKeys(item))
+    }
+    if (value !== null && typeof value === 'object') {
+      const result: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(
+        value as Record<string, unknown>,
+      )) {
+        result[this.toCamelCase(k)] = this.normalizeKeys(v)
+      }
+      return result
+    }
+    return value
   }
 
   public setDebugMode(enabled: boolean): void {
@@ -106,9 +185,18 @@ export class ApiService {
           },
         )
 
+        const message = this.getHttpErrorMessage(
+          response.status,
+          (data as { message?: string })?.message,
+        )
+        const validationErrors =
+          response.status === 422 ? this.extractValidationErrors(data) : []
+
         return {
           status: 'error',
-          message: data.message || 'Erro na requisição',
+          message,
+          statusCode: response.status,
+          validationErrors,
         }
       }
 
@@ -117,9 +205,10 @@ export class ApiService {
         duration: `${duration}ms`,
       })
 
+      const rawData = data.data !== undefined ? data.data : data
       return {
         status: 'success',
-        data: data.data || data,
+        data: this.normalizeKeys(rawData) as T,
       }
     } catch (error) {
       const duration = Date.now() - startTime
@@ -135,7 +224,14 @@ export class ApiService {
 
       return {
         status: 'error',
-        message: error instanceof Error ? error.message : 'Erro desconhecido',
+        message:
+          error instanceof Error
+            ? error.message.includes('Network request failed') ||
+              error.message.includes('fetch')
+              ? 'Sem conexão com a internet. Verifique sua rede'
+              : error.message
+            : 'Erro de conexão',
+        statusCode: 0,
       }
     }
   }
@@ -175,6 +271,18 @@ export class ApiService {
     return this.request<T>(endpoint, {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  }
+
+  async patch<T>(
+    endpoint: string,
+    data?: unknown,
+    token?: string,
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: data ? JSON.stringify(data) : undefined,
     })
   }
 }

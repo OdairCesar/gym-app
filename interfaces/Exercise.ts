@@ -1,9 +1,12 @@
 export interface Exercise {
-  nome: string
-  series: string
-  tipo: 'aerobico' | 'musculacao' | 'flexibilidade' | 'outro'
-  carga: number
-  descanso: number
-  ordem: number
-  videoUrl?: string
+  id: number
+  name: string
+  reps: string // ex: "3x12"
+  type: 'aerobico' | 'musculacao' | 'flexibilidade' | 'outro'
+  weight?: number
+  rest_seconds?: number
+  video_link?: string
+  priority?: number
+  createdAt: string
+  updatedAt: string
 }

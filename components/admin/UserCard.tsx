@@ -7,11 +7,16 @@ import { useAppTheme } from '@/hooks/useAppTheme'
 interface UserCardProps {
   user: User
   onEdit: (user: User) => void
-  onDelete: (userId: string) => void
+  onDelete: (userId: number) => void
 }
 
-export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
+function UserCard({ user, onEdit, onDelete }: UserCardProps) {
   const { colors } = useAppTheme()
+
+  // A API retorna `role` e `approved` — isAdmin/isPersonal não existem no GET
+  const isAdmin = user.role === 'admin' || user.role === 'super'
+  const isPersonal = user.role === 'personal'
+  const isActive = user.approved == null ? true : Boolean(user.approved)
 
   const styles = StyleSheet.create({
     card: {
@@ -82,17 +87,28 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.userInfo}>
-        <Text style={styles.userName}>{user.nome}</Text>
+        <Text style={styles.userName}>{user.name}</Text>
         <Text style={styles.userEmail}>{user.email}</Text>
         <View style={styles.userTags}>
-          {user.isAdmin && (
-            <Text style={[styles.tag, styles.tagError]}>Admin</Text>
-          )}
-          {user.isPersonal && (
+          {isAdmin && <Text style={[styles.tag, styles.tagError]}>Admin</Text>}
+          {isPersonal && (
             <Text style={[styles.tag, styles.tagPrimary]}>Personal</Text>
           )}
-          {!user.isActive && (
-            <Text style={[styles.tag, styles.tagSecondary]}>Inativo</Text>
+          {!isAdmin && !isPersonal && (
+            <Text style={[styles.tag, styles.tagSecondary]}>Aluno</Text>
+          )}
+          {!isActive && (
+            <Text
+              style={[
+                styles.tag,
+                {
+                  backgroundColor: colors.dangerLight,
+                  color: colors.danger,
+                },
+              ]}
+            >
+              Inativo
+            </Text>
           )}
         </View>
       </View>
@@ -109,7 +125,7 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => onDelete(user._id!)}
+          onPress={() => onDelete(user.id)}
         >
           <MaterialCommunityIcons
             name="delete"
@@ -121,3 +137,5 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
     </View>
   )
 }
+
+export default React.memo(UserCard)

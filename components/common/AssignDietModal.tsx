@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Modal,
   View,
@@ -7,16 +7,17 @@ import {
   FlatList,
   StyleSheet,
   BackHandler,
+  TextInput,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialIcons } from '@expo/vector-icons'
 import { User } from '@/interfaces/User'
-import { IDiet } from '@/interfaces/Diet'
+import { Diet } from '@/interfaces/Diet'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface AssignDietModalProps {
   visible: boolean
-  diet: IDiet | null
+  diet: Diet | null
   clients: User[]
   onClose: () => void
   onAssign: (clientId: string) => void
@@ -30,6 +31,12 @@ export default function AssignDietModal({
   onAssign,
 }: AssignDietModalProps) {
   const { colors } = useAppTheme()
+  const [search, setSearch] = useState('')
+
+  // Limpa a busca ao fechar o modal
+  useEffect(() => {
+    if (!visible) setSearch('')
+  }, [visible])
 
   // Handler para o botão voltar do Android
   useEffect(() => {
@@ -167,25 +174,47 @@ export default function AssignDietModal({
       textAlign: 'center',
       marginTop: 8,
     },
+    searchContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    searchInput: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      fontSize: 15,
+      color: colors.text,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
   })
+
+  const filteredClients = search.trim()
+    ? clients.filter((c) =>
+        c.name.toLowerCase().includes(search.trim().toLowerCase()),
+      )
+    : clients
 
   const renderClientItem = ({ item }: { item: User }) => (
     <TouchableOpacity
       style={styles.clientItem}
-      onPress={() => onAssign(item._id || '')}
+      onPress={() => onAssign(String(item.id))}
     >
       <View style={styles.clientInfo}>
         <View style={styles.clientHeader}>
-          <Text style={styles.clientName}>{item.nome}</Text>
-          {item.diet_id && (
+          <Text style={styles.clientName}>{item.name}</Text>
+          {item.dietId && (
             <View style={styles.hasDietBadge}>
               <Text style={styles.hasDietText}>Com dieta</Text>
             </View>
           )}
         </View>
         <Text style={styles.clientEmail}>{item.email}</Text>
-        {item.telefone && (
-          <Text style={styles.clientPhone}>{item.telefone}</Text>
+        {item.phone && (
+          <Text style={styles.clientPhone}>{item.phone}</Text>
         )}
       </View>
       <MaterialIcons
@@ -213,14 +242,26 @@ export default function AssignDietModal({
 
         {diet && (
           <View style={styles.dietInfo}>
-            <Text style={styles.dietName}>{diet.nome}</Text>
+            <Text style={styles.dietName}>{diet.name}</Text>
             <Text style={styles.dietDescription}>
               Selecione um cliente para receber esta dieta
             </Text>
           </View>
         )}
 
-        {clients.length === 0 ? (
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar cliente por nome..."
+            placeholderTextColor={colors.textSecondary}
+            value={search}
+            onChangeText={setSearch}
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+          />
+        </View>
+
+        {filteredClients.length === 0 ? (
           <View style={styles.emptyContainer}>
             <MaterialIcons
               name="people-outline"
@@ -229,13 +270,15 @@ export default function AssignDietModal({
             />
             <Text style={styles.emptyText}>Nenhum cliente encontrado</Text>
             <Text style={styles.emptySubtext}>
-              Cadastre clientes para poder atribuir dietas
+              {search.trim()
+                ? 'Nenhum cliente com esse nome'
+                : 'Cadastre clientes para poder atribuir dietas'}
             </Text>
           </View>
         ) : (
           <FlatList
-            data={clients}
-            keyExtractor={(item) => item._id || ''}
+            data={filteredClients}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={renderClientItem}
             style={styles.clientsList}
             showsVerticalScrollIndicator={false}

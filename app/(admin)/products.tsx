@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
+import {
+  View,
+  FlatList,
+  Alert,
+  RefreshControl,
+  StyleSheet,
+  Text,
+} from 'react-native'
 import { useProducts } from '@/hooks/useProducts'
 import { Product } from '@/interfaces/Product'
 import ProductCard from '@/components/admin/ProductCard'
@@ -13,11 +20,11 @@ import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface FilterState {
-  nome: string
-  categoria: string
-  preco: string
-  estoque: string
-  ativo: string
+  name: string
+  category: string
+  price: string
+  stock: string
+  published: string
 }
 
 export default function ProductsScreen() {
@@ -27,22 +34,11 @@ export default function ProductsScreen() {
     createProduct,
     updateProduct,
     deleteProduct: deleteProductHook,
+    updateStock,
     filterProducts,
   } = useProducts()
 
   const { colors } = useAppTheme()
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    list: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-    },
-  })
 
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [refreshing, setRefreshing] = useState(false)
@@ -51,86 +47,73 @@ export default function ProductsScreen() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
 
   const [formData, setFormData] = useState<Partial<Product>>({
-    nome: '',
-    descricao: '',
-    preco: 0,
-    categoria: '',
-    estoque: 0,
-    imagem: '',
-    ativo: true,
+    name: '',
+    description: '',
+    price: 0,
+    category: '',
+    stock: 0,
+    image_link: '',
+    code: '',
+    published: true,
   })
 
   const [filters, setFilters] = useState<FilterState>({
-    nome: '',
-    categoria: '',
-    preco: '',
-    estoque: '',
-    ativo: '',
+    name: '',
+    category: '',
+    price: '',
+    stock: '',
+    published: '',
   })
 
   const applyFilters = useCallback(() => {
-    const filtered = filterProducts({
-      nome: filters.nome,
-      categoria: filters.categoria,
-      preco: filters.preco ? { min: parseFloat(filters.preco) } : undefined,
+    let filtered = filterProducts({
+      name: filters.name,
+      category: filters.category,
+      price: filters.price ? { min: parseFloat(filters.price) } : undefined,
     })
 
-    // Aplicar filtros adicionais manualmente para estoque e ativo
-    let finalFiltered = [...filtered]
-
-    if (filters.estoque) {
-      const minStock = parseFloat(filters.estoque)
+    if (filters.stock) {
+      const minStock = parseFloat(filters.stock)
       if (!isNaN(minStock)) {
-        finalFiltered = finalFiltered.filter(
-          (product) => product.estoque >= minStock,
-        )
+        filtered = filtered.filter((p) => p.stock >= minStock)
       }
     }
 
-    if (filters.ativo) {
-      finalFiltered = finalFiltered.filter(
-        (product) => product.ativo?.toString() === filters.ativo,
+    if (filters.published !== '') {
+      filtered = filtered.filter(
+        (p) => p.published.toString() === filters.published,
       )
     }
 
-    setFilteredProducts(finalFiltered)
+    setFilteredProducts(filtered)
     setFilterModalVisible(false)
   }, [filters, filterProducts])
 
   const clearFilters = () => {
-    setFilters({
-      nome: '',
-      categoria: '',
-      preco: '',
-      estoque: '',
-      ativo: '',
-    })
+    setFilters({ name: '', category: '', price: '', stock: '', published: '' })
     setFilteredProducts(products)
   }
 
   const handleFormChange = (key: string, value: string | boolean) => {
-    if (key === 'preco' || key === 'estoque') {
+    if (key === 'price' || key === 'stock') {
       const numValue =
         typeof value === 'string' ? parseFloat(value) || 0 : value
-      setFormData({ ...formData, [key]: numValue })
+      setFormData((prev) => ({ ...prev, [key]: numValue }))
     } else {
-      setFormData({ ...formData, [key]: value })
+      setFormData((prev) => ({ ...prev, [key]: value }))
     }
-  }
-
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters({ ...filters, [key]: value })
   }
 
   const resetForm = () => {
     setFormData({
-      nome: '',
-      descricao: '',
-      preco: 0,
-      categoria: '',
-      estoque: 0,
-      imagem: '',
-      ativo: true,
+      name: '',
+      description: '',
+      price: 0,
+      category: '',
+      stock: 0,
+      image_link: '',
+      code: '',
+      published: true,
     })
     setEditingProduct(null)
   }
@@ -138,13 +121,12 @@ export default function ProductsScreen() {
   const saveProduct = async () => {
     try {
       const success = editingProduct
-        ? await updateProduct(editingProduct._id, formData)
+        ? await updateProduct(editingProduct.id, formData)
         : await createProduct(formData)
 
       if (success) {
         setModalVisible(false)
         resetForm()
-        // Atualizar produtos na tela
         await fetchProducts()
       }
     } catch (error) {
@@ -155,18 +137,19 @@ export default function ProductsScreen() {
   const openEditModal = (product: Product) => {
     setEditingProduct(product)
     setFormData({
-      nome: product.nome,
-      descricao: product.descricao,
-      preco: product.preco,
-      categoria: product.categoria,
-      estoque: product.estoque,
-      imagem: product.imagem,
-      ativo: product.ativo,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      category: product.category,
+      stock: product.stock,
+      image_link: product.image_link ?? '',
+      code: product.code,
+      published: product.published,
     })
     setModalVisible(true)
   }
 
-  const handleDeleteProduct = async (productId: string) => {
+  const handleDeleteProduct = async (productId: number) => {
     Alert.alert('Confirmar', 'Tem certeza que deseja deletar este produto?', [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -174,11 +157,8 @@ export default function ProductsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const success = await deleteProductHook(productId)
-            if (success) {
-              // Atualizar produtos na tela
-              await fetchProducts()
-            }
+            await deleteProductHook(productId)
+            await fetchProducts()
           } catch (error) {
             console.error('Erro ao deletar produto:', error)
           }
@@ -191,7 +171,6 @@ export default function ProductsScreen() {
     fetchProducts()
   }, [fetchProducts])
 
-  // Atualizar produtos filtrados quando a lista de produtos mudar
   useEffect(() => {
     setFilteredProducts(products)
   }, [products])
@@ -203,39 +182,39 @@ export default function ProductsScreen() {
 
   const productFilterFields: FilterField[] = [
     {
-      key: 'nome',
+      key: 'name',
       label: 'Nome',
       type: 'text',
       placeholder: 'Filtrar por nome',
-      value: filters.nome,
+      value: filters.name,
     },
     {
-      key: 'categoria',
+      key: 'category',
       label: 'Categoria',
       type: 'text',
       placeholder: 'Filtrar por categoria',
-      value: filters.categoria,
+      value: filters.category,
     },
     {
-      key: 'preco',
+      key: 'price',
       label: 'Preço mínimo',
       type: 'text',
       placeholder: 'Ex: 10.00',
-      value: filters.preco,
+      value: filters.price,
     },
     {
-      key: 'estoque',
+      key: 'stock',
       label: 'Estoque mínimo',
       type: 'text',
       placeholder: 'Ex: 5',
-      value: filters.estoque,
+      value: filters.stock,
     },
     {
-      key: 'ativo',
+      key: 'published',
       label: 'Status',
       type: 'select',
       placeholder: 'Todos os status...',
-      value: filters.ativo,
+      value: filters.published,
       options: [
         { label: 'Ativo', value: 'true' },
         { label: 'Inativo', value: 'false' },
@@ -245,29 +224,29 @@ export default function ProductsScreen() {
 
   const productFormFields: FormField[] = [
     {
-      key: 'nome',
+      key: 'name',
       label: 'Nome do Produto',
       type: 'text',
-      placeholder: 'Digite o nome do produto',
+      placeholder: 'Nome do produto',
       required: true,
-      value: formData.nome || '',
+      value: formData.name || '',
     },
     {
-      key: 'descricao',
+      key: 'description',
       label: 'Descrição',
       type: 'multiline',
-      placeholder: 'Digite a descrição do produto',
+      placeholder: 'Descrição do produto',
       required: true,
-      value: formData.descricao || '',
+      value: formData.description || '',
       multiline: true,
     },
     {
-      key: 'categoria',
+      key: 'category',
       label: 'Categoria',
       type: 'select',
       placeholder: 'Selecione uma categoria...',
       required: true,
-      value: formData.categoria || '',
+      value: formData.category || '',
       options: [
         { label: 'Suplementos', value: 'suplementos' },
         { label: 'Equipamentos', value: 'equipamentos' },
@@ -278,43 +257,49 @@ export default function ProductsScreen() {
       ],
     },
     {
-      key: 'preco',
+      key: 'price',
       label: 'Preço (R$)',
       type: 'number',
       placeholder: 'Ex: 29.90',
       required: true,
-      value: formData.preco?.toString() || '0',
+      value: formData.price?.toString() || '0',
       keyboardType: 'numeric',
     },
     {
-      key: 'estoque',
-      label: 'Quantidade em Estoque',
+      key: 'stock',
+      label: 'Estoque',
       type: 'number',
       placeholder: 'Ex: 100',
       required: true,
-      value: formData.estoque?.toString() || '0',
+      value: formData.stock?.toString() || '0',
       keyboardType: 'numeric',
     },
     {
-      key: 'imagem',
+      key: 'code',
+      label: 'Código',
+      type: 'text',
+      placeholder: 'Código do produto',
+      value: formData.code || '',
+    },
+    {
+      key: 'image_link',
       label: 'URL da Imagem (opcional)',
       type: 'text',
       placeholder: 'https://...',
-      value: formData.imagem || '',
+      value: formData.image_link || '',
     },
     {
-      key: 'ativo',
-      label: 'Status',
+      key: 'published',
+      label: 'Publicado',
       type: 'checkbox',
-      value: formData.ativo || false,
+      value: formData.published ?? true,
     },
   ]
 
   const headerButtons: HeaderButton[] = [
     {
-      icon: 'filter',
+      icon: 'filter-outline',
       onPress: () => setFilterModalVisible(true),
-      color: colors.primary,
     },
     {
       icon: 'plus',
@@ -322,31 +307,39 @@ export default function ProductsScreen() {
         resetForm()
         setModalVisible(true)
       },
-      color: colors.primary,
     },
   ]
 
-  const renderProductItem = ({ item }: { item: Product }) => (
-    <ProductCard
-      product={item}
-      onEdit={openEditModal}
-      onDelete={handleDeleteProduct}
-    />
-  )
-
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <PageHeader title="Gerenciar Produtos" buttons={headerButtons} />
 
       <FlatList
         data={filteredProducts}
-        keyExtractor={(item) => item._id}
-        renderItem={renderProductItem}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <ProductCard
+            product={item}
+            onEdit={openEditModal}
+            onDelete={handleDeleteProduct}
+          />
+        )}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={styles.list}
+        contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <Text
+            style={{
+              textAlign: 'center',
+              marginTop: 40,
+              color: colors.textSecondary,
+            }}
+          >
+            Nenhum produto encontrado.
+          </Text>
+        }
       />
 
       <GenericFormModal
@@ -368,8 +361,18 @@ export default function ProductsScreen() {
         onClose={() => setFilterModalVisible(false)}
         onApplyFilters={applyFilters}
         onClearFilters={clearFilters}
-        onFilterChange={handleFilterChange}
+        onFilterChange={(key, value) =>
+          setFilters((prev) => ({ ...prev, [key]: value }))
+        }
       />
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  list: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingBottom: 32,
+  },
+})

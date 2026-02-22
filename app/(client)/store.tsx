@@ -5,7 +5,6 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  Alert,
   RefreshControl,
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
@@ -13,35 +12,33 @@ import { MaterialIcons } from '@expo/vector-icons'
 
 import { useProducts } from '@/hooks/useProducts'
 import { useAppTheme } from '@/hooks/useAppTheme'
-import { Product } from '@/interfaces/Product'
+import { useGyms } from '@/hooks/useGyms'
 import { ProductCard } from '@/components/common/ProductCard'
 
 export default function StoreScreen() {
   const { products, loading, fetchProducts } = useProducts()
   const { colors } = useAppTheme()
+  const { gyms, fetchGyms } = useGyms()
   const [refreshing, setRefreshing] = useState<boolean>(false)
+
+  const gymPhone = gyms[0]?.phone
 
   const onRefresh = async () => {
     setRefreshing(true)
-    await fetchProducts()
+    await Promise.all([fetchProducts(), fetchGyms()])
     setRefreshing(false)
-  }
-
-  const handleBuyProduct = (product: Product) => {
-    Alert.alert('Produto Selecionado', `Você selecionou: ${product.nome}`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Comprar', onPress: () => console.log('Comprar produto') },
-    ])
   }
 
   useEffect(() => {
     fetchProducts()
-  }, [fetchProducts])
+    fetchGyms()
+  }, [fetchProducts, fetchGyms])
 
   useFocusEffect(
     useCallback(() => {
       fetchProducts()
-    }, [fetchProducts]),
+      fetchGyms()
+    }, [fetchProducts, fetchGyms]),
   )
 
   if (loading) {
@@ -69,16 +66,14 @@ export default function StoreScreen() {
     )
   }
 
-  const renderProduct = ({ item }: { item: Product }) => (
-    <ProductCard product={item} onBuy={handleBuyProduct} />
-  )
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={products}
-        keyExtractor={(item) => item._id}
-        renderItem={renderProduct}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <ProductCard product={item} gymPhone={gymPhone} />
+        )}
         contentContainerStyle={styles.listContainer}
         refreshControl={
           <RefreshControl
@@ -89,8 +84,6 @@ export default function StoreScreen() {
           />
         }
         showsVerticalScrollIndicator={false}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
       />
     </View>
   )
@@ -102,9 +95,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
-  },
-  row: {
-    justifyContent: 'space-between',
   },
   centered: {
     flex: 1,

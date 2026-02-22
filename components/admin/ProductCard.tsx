@@ -7,10 +7,10 @@ import { useAppTheme } from '@/hooks/useAppTheme'
 interface ProductCardProps {
   product: Product
   onEdit: (product: Product) => void
-  onDelete: (productId: string) => void
+  onDelete: (productId: number) => void
 }
 
-export default function ProductCard({
+function ProductCard({
   product,
   onEdit,
   onDelete,
@@ -146,11 +146,11 @@ export default function ProductCard({
   return (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
-        {product.imagem ? (
+        {product.image_link ? (
           <Image
-            source={{ uri: product.imagem }}
+            source={{ uri: product.image_link }}
             style={styles.image}
-            alt={product.nome}
+            alt={product.name}
           />
         ) : (
           <View style={styles.placeholderImage}>
@@ -165,37 +165,37 @@ export default function ProductCard({
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.name}>{product.nome}</Text>
+          <Text style={styles.name}>{product.name}</Text>
           <View style={styles.statusContainer}>
             <View
               style={[
                 styles.statusBadge,
                 {
-                  backgroundColor: product.ativo
+                  backgroundColor: product.published
                     ? colors.success
                     : colors.danger,
                 },
               ]}
             >
               <Text style={styles.statusText}>
-                {product.ativo ? 'Ativo' : 'Inativo'}
+                {product.published ? 'Ativo' : 'Inativo'}
               </Text>
             </View>
           </View>
         </View>
 
         <Text style={styles.description} numberOfLines={2}>
-          {product.descricao}
+          {product.description}
         </Text>
 
         <View style={styles.details}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Categoria:</Text>
-            <Text style={styles.detailValue}>{product.categoria}</Text>
+            <Text style={styles.detailValue}>{product.category}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Preço:</Text>
-            <Text style={styles.price}>R$ {product.preco.toFixed(2)}</Text>
+            <Text style={styles.price}>R$ {Number(product.price).toFixed(2)}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Estoque:</Text>
@@ -204,15 +204,15 @@ export default function ProductCard({
                 styles.stock,
                 {
                   color:
-                    product.estoque > 10
+                    product.stock > 10
                       ? colors.success
-                      : product.estoque > 0
+                      : product.stock > 0
                         ? colors.warning
                         : colors.danger,
                 },
               ]}
             >
-              {product.estoque} unidades
+              {product.stock} unidades
             </Text>
           </View>
         </View>
@@ -228,7 +228,7 @@ export default function ProductCard({
 
           <TouchableOpacity
             style={[styles.actionButton, styles.deleteButton]}
-            onPress={() => onDelete(product._id)}
+            onPress={() => onDelete(product.id)}
           >
             <MaterialIcons name="delete" size={16} color={colors.danger} />
             <Text style={styles.deleteButtonText}>Excluir</Text>
@@ -238,3 +238,5 @@ export default function ProductCard({
     </View>
   )
 }
+
+export default React.memo(ProductCard)

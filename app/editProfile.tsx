@@ -10,30 +10,32 @@ export default function EditProfileScreen() {
   const { updateProfile } = useAuth()
   const router = useRouter()
   const { styles, colors } = useAppTheme()
+  const [userId, setUserId] = useState<number>(0)
   const [form, setForm] = useState({
-    nome: '',
-    telefone: '',
-    dataNascimento: '',
+    name: '',
+    phone: '',
+    birthDate: '',
     cpf: '',
-    sexo: '',
-    endereco: '',
-    profissao: '',
+    gender: '',
+    address: '',
+    profession: '',
   })
 
   useEffect(() => {
     const loadUser = async () => {
       const user = await getUser()
       if (user) {
+        setUserId(user.id)
         setForm({
-          nome: user.nome || '',
-          telefone: user.telefone || '',
-          dataNascimento: user.dataNascimento
-            ? user.dataNascimento.toISOString().split('T')[0]
+          name: user.name || '',
+          phone: user.phone || '',
+          birthDate: user.birthDate
+            ? user.birthDate.split('T')[0]
             : '',
           cpf: user.cpf || '',
-          sexo: user.sexo || 'O',
-          endereco: user.endereco || '',
-          profissao: user.profissao || '',
+          gender: user.gender || 'O',
+          address: user.address || '',
+          profession: user.profession || '',
         })
       }
     }
@@ -42,16 +44,17 @@ export default function EditProfileScreen() {
   }, [getUser])
 
   const handleUpdate = async () => {
-    // Converter dataNascimento para Date se necessário
     const userData = {
-      ...form,
-      dataNascimento: form.dataNascimento
-        ? new Date(form.dataNascimento)
-        : undefined,
-      sexo: form.sexo as 'M' | 'F' | 'O',
+      name: form.name,
+      phone: form.phone,
+      birthDate: form.birthDate || undefined,
+      cpf: form.cpf,
+      gender: form.gender as 'M' | 'F' | 'O',
+      address: form.address,
+      profession: form.profession,
     }
 
-    const success = await updateProfile(userData)
+    const success = await updateProfile(userId, userData)
 
     if (success) {
       router.back()
@@ -64,22 +67,22 @@ export default function EditProfileScreen() {
         style={styles.input}
         placeholder="Nome"
         placeholderTextColor={colors.textSecondary}
-        value={form.nome}
-        onChangeText={(v) => setForm({ ...form, nome: v })}
+        value={form.name}
+        onChangeText={(v) => setForm({ ...form, name: v })}
       />
       <TextInput
         style={styles.input}
         placeholder="Telefone"
         placeholderTextColor={colors.textSecondary}
-        value={form.telefone}
-        onChangeText={(v) => setForm({ ...form, telefone: v })}
+        value={form.phone}
+        onChangeText={(v) => setForm({ ...form, phone: v })}
       />
       <TextInput
         style={styles.input}
-        placeholder="Data de Nascimento"
+        placeholder="Data de Nascimento (AAAA-MM-DD)"
         placeholderTextColor={colors.textSecondary}
-        value={form.dataNascimento}
-        onChangeText={(v) => setForm({ ...form, dataNascimento: v })}
+        value={form.birthDate}
+        onChangeText={(v) => setForm({ ...form, birthDate: v })}
       />
       <TextInput
         style={styles.input}
@@ -90,24 +93,24 @@ export default function EditProfileScreen() {
       />
       <TextInput
         style={styles.input}
-        placeholder="Sexo"
+        placeholder="Gênero (M/F/O)"
         placeholderTextColor={colors.textSecondary}
-        value={form.sexo}
-        onChangeText={(v) => setForm({ ...form, sexo: v })}
+        value={form.gender}
+        onChangeText={(v) => setForm({ ...form, gender: v })}
       />
       <TextInput
         style={styles.input}
         placeholder="Profissão"
         placeholderTextColor={colors.textSecondary}
-        value={form.profissao}
-        onChangeText={(v) => setForm({ ...form, profissao: v })}
+        value={form.profession}
+        onChangeText={(v) => setForm({ ...form, profession: v })}
       />
       <TextInput
         style={styles.input}
         placeholder="Endereço"
         placeholderTextColor={colors.textSecondary}
-        value={form.endereco}
-        onChangeText={(v) => setForm({ ...form, endereco: v })}
+        value={form.address}
+        onChangeText={(v) => setForm({ ...form, address: v })}
       />
 
       <TouchableOpacity

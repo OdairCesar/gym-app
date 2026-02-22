@@ -112,29 +112,40 @@ export default function ProfileScreenWithTheme({
           </View>
 
           <View style={styles.marginVertical}>
-            <ProfileInfoRow label="Nome" value={user.nome} />
+            <ProfileInfoRow label="Nome" value={user.name} />
             <ProfileInfoRow label="Email" value={user.email} />
             <ProfileInfoRow
               label="Telefone"
-              value={user.telefone || 'Não informado'}
+              value={user.phone || 'Não informado'}
             />
             <ProfileInfoRow
               label="Data de Nascimento"
               value={
-                user.dataNascimento
-                  ? formatDate(user.dataNascimento)
+                user.birthDate
+                  ? formatDate(new Date(user.birthDate))
                   : 'Não informado'
               }
             />
             <ProfileInfoRow label="CPF" value={user.cpf || 'Não informado'} />
-            <ProfileInfoRow label="Sexo" value={user.sexo || 'Não informado'} />
+            <ProfileInfoRow
+              label="Gênero"
+              value={
+                user.gender === 'M'
+                  ? 'Masculino'
+                  : user.gender === 'F'
+                    ? 'Feminino'
+                    : user.gender === 'O'
+                      ? 'Outro'
+                      : 'Não informado'
+              }
+            />
             <ProfileInfoRow
               label="Profissão"
-              value={user.profissao || 'Não informado'}
+              value={user.profession || 'Não informado'}
             />
             <ProfileInfoRow
               label="Endereço"
-              value={user.endereco || 'Não informado'}
+              value={user.address || 'Não informado'}
             />
             <ProfileInfoRow
               label="Tipo de Usuário"

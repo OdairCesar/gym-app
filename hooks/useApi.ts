@@ -26,9 +26,49 @@ interface UseApiReturn {
 }
 
 export const useApi = (): UseApiReturn => {
-  const { getToken } = useAuth()
+  const { getToken, logout } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleErrorResponse = useCallback(
+    async (response: ApiResponse<unknown>, fallbackMessage: string) => {
+      const { statusCode, message, validationErrors } = response
+
+      if (statusCode === 401) {
+        await logout()
+        const msg = 'Sessão expirada. Faça login novamente'
+        setError(msg)
+        Alert.alert('Sessão Expirada', msg)
+        return
+      }
+
+      if (statusCode === 403) {
+        const msg = 'Sem permissão para realizar esta ação'
+        setError(msg)
+        Alert.alert('Acesso Negado', msg)
+        return
+      }
+
+      if (statusCode === 422 && validationErrors && validationErrors.length > 0) {
+        const msgs = validationErrors.map((e) => `• ${e.message}`).join('\n')
+        setError(msgs)
+        Alert.alert('Dados Inválidos', msgs)
+        return
+      }
+
+      if (statusCode === 0) {
+        const msg = 'Sem conexão com a internet. Verifique sua rede'
+        setError(msg)
+        Alert.alert('Sem Conexão', msg)
+        return
+      }
+
+      const errorMsg = message || fallbackMessage
+      setError(errorMsg)
+      Alert.alert('Erro', errorMsg)
+    },
+    [logout],
+  )
 
   const executeWithAuth = useCallback(
     async <T>(
@@ -65,10 +105,13 @@ export const useApi = (): UseApiReturn => {
           }
           return response.data
         } else {
-          const errorMsg = response.message || errorMessage
-          setError(errorMsg)
           if (showErrorAlert) {
-            Alert.alert('Erro', errorMsg)
+            await handleErrorResponse(
+              response as ApiResponse<unknown>,
+              errorMessage,
+            )
+          } else {
+            setError(response.message || errorMessage)
           }
           return null
         }
@@ -84,7 +127,7 @@ export const useApi = (): UseApiReturn => {
         setLoading(false)
       }
     },
-    [getToken],
+    [getToken, handleErrorResponse],
   )
 
   const executeWithoutAuth = useCallback(
@@ -111,10 +154,13 @@ export const useApi = (): UseApiReturn => {
           }
           return response.data
         } else {
-          const errorMsg = response.message || errorMessage
-          setError(errorMsg)
           if (showErrorAlert) {
-            Alert.alert('Erro', errorMsg)
+            await handleErrorResponse(
+              response as ApiResponse<unknown>,
+              errorMessage,
+            )
+          } else {
+            setError(response.message || errorMessage)
           }
           return null
         }
@@ -130,7 +176,7 @@ export const useApi = (): UseApiReturn => {
         setLoading(false)
       }
     },
-    [],
+    [handleErrorResponse],
   )
 
   const clearError = useCallback(() => {

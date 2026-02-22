@@ -1,8 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, FlatList, Alert, RefreshControl, StyleSheet } from 'react-native'
+import {
+  View,
+  FlatList,
+  Alert,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from 'react-native'
 import { useUsers } from '@/hooks/useUsers'
 import { User } from '@/interfaces/User'
 import UserCard from '@/components/admin/UserCard'
+import PendingUserCard from '@/components/admin/PendingUserCard'
 import GenericFormModal, {
   FormField,
 } from '@/components/common/GenericFormModal'
@@ -12,26 +21,31 @@ import GenericFilterModal, {
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
+type TabType = 'all' | 'pending'
+
 interface FilterState {
-  nome: string
+  name: string
   email: string
-  telefone: string
+  phone: string
   cpf: string
-  sexo: string
-  profissao: string
-  endereco: string
-  isAdmin: string
-  isPersonal: string
+  gender: string
+  profession: string
+  address: string
+  role: string
   isActive: string
 }
 
 export default function UsersScreen() {
   const {
     users,
+    pendingUsers,
     fetchUsers,
+    fetchPendingUsers,
     createUser,
     updateUser,
     deleteUser: deleteUserHook,
+    approveUser,
+    rejectUser,
     filterUsers,
   } = useUsers()
 
@@ -42,13 +56,53 @@ export default function UsersScreen() {
       flex: 1,
       backgroundColor: colors.background,
     },
+    tabs: {
+      flexDirection: 'row',
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    tabActive: {
+      borderBottomWidth: 2,
+      borderBottomColor: colors.primary,
+    },
+    tabText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    tabTextActive: { color: colors.primary, fontWeight: '700' },
+    pendingBadge: {
+      backgroundColor: '#f59e0b',
+      borderRadius: 10,
+      minWidth: 18,
+      height: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 5,
+      marginLeft: 4,
+    },
+    pendingBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+    tabWithBadge: { flexDirection: 'row', alignItems: 'center' },
     list: {
       flex: 1,
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
+    emptyText: {
+      textAlign: 'center',
+      color: colors.textSecondary,
+      marginTop: 40,
+      fontSize: 15,
+    },
   })
 
+  const [activeTab, setActiveTab] = useState<TabType>('all')
   const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [refreshing, setRefreshing] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
@@ -56,68 +110,61 @@ export default function UsersScreen() {
   const [editingUser, setEditingUser] = useState<User | null>(null)
 
   const [formData, setFormData] = useState<Partial<User>>({
-    nome: '',
+    name: '',
     email: '',
     password: '',
-    telefone: '',
+    phone: '',
     cpf: '',
-    sexo: 'O',
-    profissao: '',
-    endereco: '',
+    gender: 'O',
+    profession: '',
+    address: '',
     isAdmin: false,
     isPersonal: false,
-    isActive: true,
   })
 
   const [filters, setFilters] = useState<FilterState>({
-    nome: '',
+    name: '',
     email: '',
-    telefone: '',
+    phone: '',
     cpf: '',
-    sexo: '',
-    profissao: '',
-    endereco: '',
-    isAdmin: '',
-    isPersonal: '',
+    gender: '',
+    profession: '',
+    address: '',
+    role: '',
     isActive: '',
   })
 
   const applyFilters = useCallback(() => {
     const filtered = filterUsers({
-      nome: filters.nome,
+      name: filters.name,
       email: filters.email,
-      sexo: filters.sexo,
-      isAdmin: filters.isAdmin ? filters.isAdmin === 'true' : undefined,
-      isPersonal: filters.isPersonal
-        ? filters.isPersonal === 'true'
-        : undefined,
+      gender: filters.gender || undefined,
+      role: filters.role || undefined,
       isActive: filters.isActive ? filters.isActive === 'true' : undefined,
     })
 
-    // Aplicar filtros adicionais manualmente
     let finalFiltered = [...filtered]
 
-    if (filters.telefone) {
+    if (filters.phone) {
       finalFiltered = finalFiltered.filter((user) =>
-        user.telefone?.toLowerCase().includes(filters.telefone.toLowerCase()),
+        user.phone?.toLowerCase().includes(filters.phone.toLowerCase()),
       )
     }
-
     if (filters.cpf) {
       finalFiltered = finalFiltered.filter((user) =>
         user.cpf?.toLowerCase().includes(filters.cpf.toLowerCase()),
       )
     }
-
-    if (filters.profissao) {
+    if (filters.profession) {
       finalFiltered = finalFiltered.filter((user) =>
-        user.profissao?.toLowerCase().includes(filters.profissao.toLowerCase()),
+        user.profession
+          ?.toLowerCase()
+          .includes(filters.profession.toLowerCase()),
       )
     }
-
-    if (filters.endereco) {
+    if (filters.address) {
       finalFiltered = finalFiltered.filter((user) =>
-        user.endereco?.toLowerCase().includes(filters.endereco.toLowerCase()),
+        user.address?.toLowerCase().includes(filters.address.toLowerCase()),
       )
     }
 
@@ -127,15 +174,14 @@ export default function UsersScreen() {
 
   const clearFilters = () => {
     setFilters({
-      nome: '',
+      name: '',
       email: '',
-      telefone: '',
+      phone: '',
       cpf: '',
-      sexo: '',
-      profissao: '',
-      endereco: '',
-      isAdmin: '',
-      isPersonal: '',
+      gender: '',
+      profession: '',
+      address: '',
+      role: '',
       isActive: '',
     })
     setFilteredUsers(users)
@@ -152,13 +198,12 @@ export default function UsersScreen() {
       if (userData.password === '') delete userData.password
 
       const success = editingUser
-        ? await updateUser(editingUser._id || '', userData)
+        ? await updateUser(editingUser.id, userData)
         : await createUser(userData)
 
       if (success) {
         setModalVisible(false)
         resetForm()
-        // Atualizar usuários na tela
         await fetchUsers()
       }
     } catch (error) {
@@ -168,17 +213,16 @@ export default function UsersScreen() {
 
   const resetForm = () => {
     setFormData({
-      nome: '',
+      name: '',
       email: '',
       password: '',
-      telefone: '',
+      phone: '',
       cpf: '',
-      sexo: 'O',
-      profissao: '',
-      endereco: '',
+      gender: 'O',
+      profession: '',
+      address: '',
       isAdmin: false,
       isPersonal: false,
-      isActive: true,
     })
     setEditingUser(null)
   }
@@ -186,22 +230,19 @@ export default function UsersScreen() {
   const openEditModal = (user: User) => {
     setEditingUser(user)
     setFormData({
-      nome: user.nome,
+      name: user.name,
       email: user.email,
       password: '',
-      telefone: user.telefone || '',
+      phone: user.phone || '',
       cpf: user.cpf || '',
-      sexo: user.sexo || 'O',
-      profissao: user.profissao || '',
-      endereco: user.endereco || '',
-      isAdmin: user.isAdmin || false,
-      isPersonal: user.isPersonal || false,
-      isActive: user.isActive !== false,
+      gender: user.gender || 'O',
+      profession: user.profession || '',
+      address: user.address || '',
     })
     setModalVisible(true)
   }
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: number) => {
     Alert.alert('Confirmar', 'Tem certeza que deseja deletar este usuário?', [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -209,11 +250,8 @@ export default function UsersScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const success = await deleteUserHook(userId)
-            if (success) {
-              // Atualizar usuários na tela
-              await fetchUsers()
-            }
+            await deleteUserHook(userId)
+            await fetchUsers()
           } catch (error) {
             Alert.alert('Erro', 'Erro ao deletar usuário')
           }
@@ -224,16 +262,17 @@ export default function UsersScreen() {
 
   useEffect(() => {
     fetchUsers()
-  }, [fetchUsers])
+    fetchPendingUsers()
+  }, [fetchUsers, fetchPendingUsers])
 
-  // Atualizar usuários filtrados quando a lista de usuários mudar
   useEffect(() => {
     setFilteredUsers(users)
   }, [users])
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true)
-    fetchUsers().finally(() => setRefreshing(false))
+    await Promise.all([fetchUsers(), fetchPendingUsers()])
+    setRefreshing(false)
   }
 
   const handleFormChange = (key: string, value: string | boolean) => {
@@ -262,11 +301,11 @@ export default function UsersScreen() {
 
   const userFilterFields: FilterField[] = [
     {
-      key: 'nome',
+      key: 'name',
       label: 'Nome',
       type: 'text',
       placeholder: 'Filtrar por nome',
-      value: filters.nome,
+      value: filters.name,
     },
     {
       key: 'email',
@@ -276,11 +315,11 @@ export default function UsersScreen() {
       value: filters.email,
     },
     {
-      key: 'telefone',
+      key: 'phone',
       label: 'Telefone',
       type: 'text',
       placeholder: 'Filtrar por telefone',
-      value: filters.telefone,
+      value: filters.phone,
     },
     {
       key: 'cpf',
@@ -290,29 +329,41 @@ export default function UsersScreen() {
       value: filters.cpf,
     },
     {
-      key: 'profissao',
+      key: 'profession',
       label: 'Profissão',
       type: 'text',
       placeholder: 'Filtrar por profissão',
-      value: filters.profissao,
+      value: filters.profession,
     },
     {
-      key: 'endereco',
+      key: 'address',
       label: 'Endereço',
       type: 'text',
       placeholder: 'Filtrar por endereço',
-      value: filters.endereco,
+      value: filters.address,
     },
     {
-      key: 'sexo',
-      label: 'Sexo',
+      key: 'gender',
+      label: 'Gênero',
       type: 'select',
-      value: filters.sexo,
+      value: filters.gender,
       options: [
         { label: 'Todos', value: '' },
         { label: 'Masculino', value: 'M' },
         { label: 'Feminino', value: 'F' },
         { label: 'Outro', value: 'O' },
+      ],
+    },
+    {
+      key: 'role',
+      label: 'Papel',
+      type: 'select',
+      value: filters.role,
+      options: [
+        { label: 'Todos', value: '' },
+        { label: 'Admin', value: 'admin' },
+        { label: 'Personal', value: 'personal' },
+        { label: 'Aluno', value: 'user' },
       ],
     },
     {
@@ -330,12 +381,12 @@ export default function UsersScreen() {
 
   const userFormFields: FormField[] = [
     {
-      key: 'nome',
+      key: 'name',
       label: 'Nome',
       type: 'text',
       placeholder: 'Digite o nome',
       required: true,
-      value: formData.nome || '',
+      value: formData.name || '',
     },
     {
       key: 'email',
@@ -354,11 +405,11 @@ export default function UsersScreen() {
       value: formData.password || '',
     },
     {
-      key: 'telefone',
+      key: 'phone',
       label: 'Telefone',
       type: 'phone',
       placeholder: 'Digite o telefone',
-      value: formData.telefone || '',
+      value: formData.phone || '',
     },
     {
       key: 'cpf',
@@ -368,10 +419,10 @@ export default function UsersScreen() {
       value: formData.cpf || '',
     },
     {
-      key: 'sexo',
-      label: 'Sexo',
+      key: 'gender',
+      label: 'Gênero',
       type: 'radio',
-      value: formData.sexo || 'O',
+      value: formData.gender || 'O',
       options: [
         { label: 'Masculino', value: 'M' },
         { label: 'Feminino', value: 'F' },
@@ -379,57 +430,122 @@ export default function UsersScreen() {
       ],
     },
     {
-      key: 'profissao',
+      key: 'profession',
       label: 'Profissão',
       type: 'text',
       placeholder: 'Digite a profissão',
-      value: formData.profissao || '',
+      value: formData.profession || '',
     },
     {
-      key: 'endereco',
+      key: 'address',
       label: 'Endereço',
       type: 'multiline',
       placeholder: 'Digite o endereço',
-      value: formData.endereco || '',
+      value: formData.address || '',
     },
-    {
-      key: 'isAdmin',
-      label: 'Administrador',
-      type: 'checkbox',
-      value: formData.isAdmin || false,
-    },
-    {
-      key: 'isPersonal',
-      label: 'Personal Trainer',
-      type: 'checkbox',
-      value: formData.isPersonal || false,
-    },
-    {
-      key: 'isActive',
-      label: 'Usuário Ativo',
-      type: 'checkbox',
-      value: formData.isActive !== false,
-    },
+    ...(editingUser
+      ? []
+      : [
+          {
+            key: 'isAdmin',
+            label: 'Administrador',
+            type: 'checkbox' as const,
+            value: formData.isAdmin || false,
+          },
+          {
+            key: 'isPersonal',
+            label: 'Personal Trainer',
+            type: 'checkbox' as const,
+            value: formData.isPersonal || false,
+          },
+        ]),
   ]
 
   const renderUserItem = ({ item }: { item: User }) => (
     <UserCard user={item} onEdit={openEditModal} onDelete={handleDeleteUser} />
   )
 
+  const renderPendingItem = ({ item }: { item: User }) => (
+    <PendingUserCard
+      user={item}
+      onApprove={approveUser}
+      onReject={rejectUser}
+    />
+  )
+
   return (
     <View style={styles.container}>
       <PageHeader title="Gerenciar Usuários" buttons={headerButtons} />
 
-      <FlatList
-        data={filteredUsers}
-        keyExtractor={(item) => item._id || `user-${Math.random()}`}
-        renderItem={renderUserItem}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'all' && styles.tabActive]}
+          onPress={() => setActiveTab('all')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'all' && styles.tabTextActive,
+            ]}
+          >
+            Todos
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'pending' && styles.tabActive]}
+          onPress={() => setActiveTab('pending')}
+        >
+          <View style={styles.tabWithBadge}>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'pending' && styles.tabTextActive,
+              ]}
+            >
+              Pendentes
+            </Text>
+            {pendingUsers.length > 0 && (
+              <View style={styles.pendingBadge}>
+                <Text style={styles.pendingBadgeText}>
+                  {pendingUsers.length}
+                </Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {activeTab === 'all' ? (
+        <FlatList
+          data={filteredUsers}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderUserItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>Nenhum usuário encontrado</Text>
+          }
+        />
+      ) : (
+        <FlatList
+          data={pendingUsers}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderPendingItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>
+              Nenhum usuário aguardando aprovação
+            </Text>
+          }
+        />
+      )}
 
       <GenericFormModal
         visible={modalVisible}

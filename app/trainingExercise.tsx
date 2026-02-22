@@ -23,6 +23,7 @@ import { useAppTheme } from '@/hooks/useAppTheme'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useTrainings } from '@/hooks/useTrainings'
+import { useExercises } from '@/hooks/useExercises'
 import { ExerciseItem } from '@/components/ExerciseItem'
 import { useTrainingState } from '@/hooks/useTrainingState'
 import { STORAGE_COMPLETED, STORAGE_SKIPPED } from '@/constants/storageKeys'
@@ -34,6 +35,8 @@ type Filter = 'all' | 'completed' | 'skipped'
 export default function TrainingExerciseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { fetchTrainingById } = useTrainings()
+  const { trainingExercises, setTrainingExercises, fetchTrainingExercises } =
+    useExercises()
   const router = useRouter()
   const navigation = useNavigation()
   const { styles: globalStyles, colors } = useAppTheme()
@@ -111,10 +114,16 @@ export default function TrainingExerciseScreen() {
       setError(null)
 
       // Busca o treino pelo ID usando a API
-      const foundTraining = await fetchTrainingById(id)
+      const numericId = parseInt(id)
+      const foundTraining = await fetchTrainingById(numericId)
 
       if (foundTraining) {
         setTraining(foundTraining)
+        if (foundTraining.exercises && foundTraining.exercises.length > 0) {
+          setTrainingExercises(foundTraining.exercises)
+        } else {
+          await fetchTrainingExercises(numericId)
+        }
       } else {
         setError('Treino não encontrado.')
       }
@@ -151,7 +160,13 @@ export default function TrainingExerciseScreen() {
       setCompletedExercises(completedRaw ? JSON.parse(completedRaw) : [])
       setSkippedExercises(skippedRaw ? JSON.parse(skippedRaw) : [])
     }
-  }, [id, fetchTrainingById, router])
+  }, [
+    id,
+    fetchTrainingById,
+    fetchTrainingExercises,
+    setTrainingExercises,
+    router,
+  ])
 
   useEffect(() => {
     if (id) fetchTraining()
@@ -164,7 +179,7 @@ export default function TrainingExerciseScreen() {
   )
 
   useLayoutEffect(() => {
-    if (training?.nome) navigation.setOptions({ title: training.nome })
+    if (training?.name) navigation.setOptions({ title: training.name })
   }, [training, navigation])
 
   const saveCompleted = async (list: number[]) => {
@@ -204,10 +219,12 @@ export default function TrainingExerciseScreen() {
   }
 
   const orderedExercises = useMemo(() => {
-    if (!training) return []
+    if (!trainingExercises.length) return []
 
-    return [...training.exercicios].sort((a, b) => a.ordem - b.ordem)
-  }, [training])
+    return [...trainingExercises].sort(
+      (a, b) => (a.priority ?? 0) - (b.priority ?? 0),
+    )
+  }, [trainingExercises])
 
   const exercisesToShow = useMemo(() => {
     switch (filter) {
@@ -224,14 +241,14 @@ export default function TrainingExerciseScreen() {
   }, [filter, orderedExercises, completedExercises, skippedExercises])
 
   const pendingExercisesCount = useMemo(() => {
-    if (!training) return 0
+    if (!trainingExercises.length) return 0
 
     return (
-      training.exercicios.length -
+      trainingExercises.length -
       completedExercises.length -
       skippedExercises.length
     )
-  }, [training, completedExercises, skippedExercises])
+  }, [trainingExercises, completedExercises, skippedExercises])
 
   // Reset da flag quando o treino é reiniciado ou há novos exercícios pendentes
   useEffect(() => {
@@ -240,7 +257,7 @@ export default function TrainingExerciseScreen() {
     }
   }, [pendingExercisesCount])
 
-  const totalExercises = training?.exercicios.length || 0
+  const totalExercises = trainingExercises.length || 0
   const completedCount = completedExercises.length
   const skippedCount = skippedExercises.length
   const progressPercentage =
@@ -507,13 +524,13 @@ export default function TrainingExerciseScreen() {
             </View>
           )}
 
-          {exercisesToShow.map((exercicio) => {
-            const originalIndex = orderedExercises.indexOf(exercicio)
+          {exercisesToShow.map((exercise) => {
+            const originalIndex = orderedExercises.indexOf(exercise)
 
             return (
               <ExerciseItem
-                key={exercicio.ordem}
-                exercicio={exercicio}
+                key={exercise.id.toString()}
+                exercise={exercise}
                 onComplete={() => handleCompleteExercise(originalIndex)}
                 onSkip={() => handleSkipExercise(originalIndex)}
                 disableComplete={filter === 'completed'}

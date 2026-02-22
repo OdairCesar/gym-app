@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Exercise } from '@/interfaces/Exercise'
 import { useAppTheme } from '@/hooks/useAppTheme'
@@ -7,8 +7,8 @@ import { useAppTheme } from '@/hooks/useAppTheme'
 interface ExerciseListProps {
   exercises: Exercise[]
   onAdd: () => void
-  onRemove: (index: number) => void
-  onEdit?: (exercise: Exercise, index: number) => void
+  onRemove: (exerciseId: number) => void
+  onEdit?: (exercise: Exercise) => void
 }
 
 export default function ExerciseList({
@@ -21,127 +21,96 @@ export default function ExerciseList({
 
   const styles = StyleSheet.create({
     container: {
-      marginVertical: 12,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    title: {
-      fontSize: 16,
-      fontWeight: '500',
-      color: colors.text,
-    },
-    addButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.primary,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 6,
-      gap: 4,
-    },
-    addButtonText: {
-      color: colors.textLight,
-      fontSize: 14,
-      fontWeight: '600',
+      flex: 1,
+      padding: 16,
     },
     emptyText: {
       fontSize: 14,
       color: colors.textSecondary,
       fontStyle: 'italic',
       textAlign: 'center',
-      paddingVertical: 16,
+      paddingVertical: 32,
     },
     exerciseItem: {
       backgroundColor: colors.backgroundSecondary,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 8,
+      borderRadius: 10,
+      padding: 14,
+      marginBottom: 10,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.06,
+      shadowRadius: 3,
+      elevation: 2,
     },
     exerciseInfo: {
       flex: 1,
     },
     exerciseName: {
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: '600',
       color: colors.text,
-      marginBottom: 2,
+      marginBottom: 3,
     },
     exerciseDetails: {
-      fontSize: 12,
+      fontSize: 13,
       color: colors.textSecondary,
     },
     exerciseActions: {
       flexDirection: 'row',
-      gap: 8,
+      gap: 6,
+      marginLeft: 8,
     },
     actionButton: {
-      padding: 4,
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   })
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Exercícios ({exercises.length})</Text>
-        <TouchableOpacity style={styles.addButton} onPress={onAdd}>
-          <MaterialCommunityIcons
-            name="plus"
-            size={20}
-            color={colors.textLight}
-          />
-          <Text style={styles.addButtonText}>Adicionar</Text>
-        </TouchableOpacity>
-      </View>
-
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 24 }}
+    >
       {exercises.length === 0 ? (
         <Text style={styles.emptyText}>Nenhum exercício adicionado</Text>
       ) : (
-        exercises.map((exercise, index) => (
-          <View
-            key={`exercise-${index}-${exercise.nome}`}
-            style={styles.exerciseItem}
-          >
+        exercises.map((exercise) => (
+          <View key={`exercise-${exercise.id}`} style={styles.exerciseItem}>
             <View style={styles.exerciseInfo}>
-              <Text style={styles.exerciseName}>{exercise.nome}</Text>
+              <Text style={styles.exerciseName}>{exercise.name}</Text>
               <Text style={styles.exerciseDetails}>
-                {exercise.series} • {exercise.tipo} • {exercise.carga}kg •{' '}
-                {exercise.descanso}s
+                {exercise.reps}
+                {exercise.type ? ` • ${exercise.type}` : ''}
+                {exercise.weight ? ` • ${exercise.weight}kg` : ''}
+                {exercise.rest_seconds ? ` • ${exercise.rest_seconds}s descanso` : ''}
               </Text>
             </View>
             <View style={styles.exerciseActions}>
               {onEdit && (
                 <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => onEdit(exercise, index)}
+                  style={[styles.actionButton, { backgroundColor: colors.primaryLight }]}
+                  onPress={() => onEdit(exercise)}
                 >
-                  <MaterialCommunityIcons
-                    name="pencil"
-                    size={16}
-                    color={colors.primary}
-                  />
+                  <MaterialCommunityIcons name="pencil" size={16} color={colors.primary} />
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => onRemove(index)}
+                style={[styles.actionButton, { backgroundColor: colors.dangerLight }]}
+                onPress={() => onRemove(exercise.id)}
               >
-                <MaterialCommunityIcons
-                  name="delete"
-                  size={16}
-                  color={colors.danger}
-                />
+                <MaterialCommunityIcons name="delete" size={16} color={colors.danger} />
               </TouchableOpacity>
             </View>
           </View>
         ))
       )}
-    </View>
+    </ScrollView>
   )
 }

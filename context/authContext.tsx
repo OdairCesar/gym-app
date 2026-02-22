@@ -35,21 +35,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const result = JSON.parse(userData)
 
         if (result && typeof result === 'object') {
+          // A API retorna snake_case (gym_id, birth_date, role etc.)
+          // Suportamos ambos os formatos para garantir compatibilidade
+          const role: string = result.role || ''
+
           const user: User = {
-            nome: result.nome || '',
+            id: result.id || 0,
+            name: result.name || '',
             email: result.email || '',
-            password: result.password || '',
-            dataNascimento: result.dataNascimento
-              ? new Date(result.dataNascimento)
-              : undefined,
-            telefone: result.telefone || '',
+            birthDate: result.birth_date || result.birthDate || undefined,
+            phone: result.phone || '',
             cpf: result.cpf || '',
-            sexo: result.sexo || 'O',
-            profissao: result.profissao || '',
-            endereco: result.endereco || '',
-            isAdmin: result.isAdmin || false,
-            isPersonal: result.isPersonal || false,
-            isActive: result.isActive || true,
+            gender: result.gender || 'O',
+            profession: result.profession || '',
+            address: result.address || '',
+            gymId: result.gym_id ?? result.gymId ?? null,
+            dietId: result.diet_id ?? result.dietId ?? null,
+            trainingId: result.training_id ?? result.trainingId ?? null,
+            isAdmin:
+              role === 'admin' || role === 'super' || result.isAdmin || false,
+            isPersonal: role === 'personal' || result.isPersonal || false,
+            isActive: result.approved ?? result.isActive ?? true,
+            createdAt: result.created_at || result.createdAt || '',
+            updatedAt: result.updated_at || result.updatedAt || '',
           }
 
           return user

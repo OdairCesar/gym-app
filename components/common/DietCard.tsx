@@ -1,31 +1,25 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
-import { IDiet } from '@/interfaces/Diet'
-import { User } from '@/interfaces/User'
+import { Diet } from '@/interfaces/Diet'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
 interface DietCardProps {
-  diet: IDiet
-  personals: User[]
-  onEdit: (diet: IDiet) => void
-  onDelete: (dietId: string) => void
-  onAssignToClient: (diet: IDiet) => void
+  diet: Diet
+  onEdit: (diet: Diet) => void
+  onDelete: (dietId: number) => void
+  onAssignToClient: (diet: Diet) => void
+  onManageMeals?: (diet: Diet) => void
 }
 
-export default function DietCard({
+function DietCard({
   diet,
-  personals,
   onEdit,
   onDelete,
   onAssignToClient,
+  onManageMeals,
 }: DietCardProps) {
   const { colors } = useAppTheme()
-
-  const getPersonalName = (personalId: string) => {
-    const personal = personals.find((p) => p._id === personalId)
-    return personal?.nome || 'Personal não encontrado'
-  }
 
   const styles = StyleSheet.create({
     card: {
@@ -63,6 +57,15 @@ export default function DietCard({
       borderRadius: 12,
     },
     mealsCountText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.primary,
+      marginLeft: 4,
+    },
+    mealsButton: {
+      backgroundColor: colors.primaryLight,
+    },
+    mealsButtonText: {
       fontSize: 12,
       fontWeight: '500',
       color: colors.primary,
@@ -157,62 +160,60 @@ export default function DietCard({
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>{diet.nome}</Text>
+        <Text style={styles.title}>{diet.name}</Text>
         <View style={styles.mealsCount}>
           <MaterialIcons
             name="restaurant-menu"
             size={16}
             color={colors.primary}
           />
-          <Text style={styles.mealsCountText}>
-            {diet.refeicoes?.length || 0} refeições
-          </Text>
         </View>
       </View>
 
-      {diet.descricao && (
+      {diet.description && (
         <Text style={styles.description} numberOfLines={2}>
-          {diet.descricao}
+          {diet.description}
         </Text>
       )}
 
       <View style={styles.nutritionInfo}>
-        {diet.calorias && (
+        {diet.calories && (
           <View style={styles.nutritionItem}>
             <Text style={styles.nutritionLabel}>Calorias:</Text>
-            <Text style={styles.nutritionValue}>{diet.calorias} kcal</Text>
+            <Text style={styles.nutritionValue}>{diet.calories} kcal</Text>
           </View>
         )}
-        {diet.proteinas && (
+        {diet.proteins && (
           <View style={styles.nutritionItem}>
             <Text style={styles.nutritionLabel}>Proteínas:</Text>
-            <Text style={styles.nutritionValue}>{diet.proteinas}g</Text>
+            <Text style={styles.nutritionValue}>{diet.proteins}g</Text>
           </View>
         )}
-        {diet.carboidratos && (
+        {diet.carbohydrates && (
           <View style={styles.nutritionItem}>
             <Text style={styles.nutritionLabel}>Carboidratos:</Text>
-            <Text style={styles.nutritionValue}>{diet.carboidratos}g</Text>
+            <Text style={styles.nutritionValue}>{diet.carbohydrates}g</Text>
           </View>
         )}
-        {diet.gorduras && (
+        {diet.fats && (
           <View style={styles.nutritionItem}>
             <Text style={styles.nutritionLabel}>Gorduras:</Text>
-            <Text style={styles.nutritionValue}>{diet.gorduras}g</Text>
+            <Text style={styles.nutritionValue}>{diet.fats}g</Text>
           </View>
         )}
-      </View>
-
-      <View style={styles.details}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Criador:</Text>
-          <Text style={styles.detailValue}>
-            {diet.criador ? getPersonalName(diet.criador) : 'N/A'}
-          </Text>
-        </View>
       </View>
 
       <View style={styles.actions}>
+        {onManageMeals && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.mealsButton]}
+            onPress={() => onManageMeals(diet)}
+          >
+            <MaterialIcons name="restaurant-menu" size={16} color={colors.primary} />
+            <Text style={styles.mealsButtonText}>Refeições</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={[styles.actionButton, styles.assignButton]}
           onPress={() => onAssignToClient(diet)}
@@ -231,7 +232,7 @@ export default function DietCard({
 
         <TouchableOpacity
           style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => onDelete(diet._id || '')}
+          onPress={() => onDelete(diet.id)}
         >
           <MaterialIcons name="delete" size={16} color={colors.danger} />
           <Text style={styles.deleteButtonText}>Excluir</Text>
@@ -240,3 +241,5 @@ export default function DietCard({
     </View>
   )
 }
+
+export default React.memo(DietCard)

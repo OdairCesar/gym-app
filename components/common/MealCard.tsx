@@ -1,15 +1,26 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 
 import { useAppTheme } from '@/hooks/useAppTheme'
-import { IMeal } from '@/interfaces/Diet'
+import { Meal } from '@/interfaces/Meal'
+import { Food } from '@/interfaces/Food'
 
 interface MealCardProps {
-  meal: IMeal
+  meal: Meal
+  foods?: Food[]
+  onEdit?: (meal: Meal) => void
+  onDelete?: (mealId: number) => void
+  onManageFoods?: (meal: Meal) => void
 }
 
-export function MealCard({ meal }: MealCardProps) {
+export const MealCard = React.memo(function MealCard({
+  meal,
+  foods = [],
+  onEdit,
+  onDelete,
+  onManageFoods,
+}: MealCardProps) {
   const { colors } = useAppTheme()
 
   return (
@@ -24,9 +35,9 @@ export function MealCard({ meal }: MealCardProps) {
     >
       <View style={styles.mealHeader}>
         <Text style={[styles.mealName, { color: colors.text }]}>
-          {meal.nome}
+          {meal.name}
         </Text>
-        {meal.horario && (
+        {meal.hourly && (
           <View style={styles.timeContainer}>
             <MaterialIcons
               name="schedule"
@@ -34,38 +45,92 @@ export function MealCard({ meal }: MealCardProps) {
               color={colors.textSecondary}
             />
             <Text style={[styles.mealTime, { color: colors.textSecondary }]}>
-              {meal.horario}
+              {meal.hourly}
             </Text>
           </View>
         )}
       </View>
 
-      {meal.descricao && (
+      {meal.description && (
         <Text style={[styles.mealDescription, { color: colors.textSecondary }]}>
-          {meal.descricao}
+          {meal.description}
         </Text>
       )}
 
-      <View style={styles.foodsContainer}>
-        <Text style={[styles.foodsTitle, { color: colors.text }]}>
-          Alimentos:
-        </Text>
-        {meal.alimentos.map((alimento, index) => (
-          <View key={index} style={styles.foodItem}>
-            <MaterialIcons
-              name="fiber-manual-record"
-              size={8}
-              color={colors.primary}
-            />
-            <Text style={[styles.foodText, { color: colors.textSecondary }]}>
-              {alimento}
-            </Text>
-          </View>
-        ))}
-      </View>
+      {foods.length > 0 && (
+        <View style={styles.foodsContainer}>
+          <Text style={[styles.foodsTitle, { color: colors.text }]}>
+            Alimentos:
+          </Text>
+          {foods.map((food) => (
+            <View key={food.id} style={styles.foodItem}>
+              <MaterialIcons
+                name="fiber-manual-record"
+                size={8}
+                color={colors.primary}
+              />
+              <Text style={[styles.foodText, { color: colors.textSecondary }]}>
+                {food.name}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {(onEdit || onDelete || onManageFoods) && (
+        <View
+          style={[
+            styles.actions,
+            { borderTopColor: colors.border },
+          ]}
+        >
+          {onManageFoods && (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: colors.primaryLight },
+              ]}
+              onPress={() => onManageFoods(meal)}
+            >
+              <MaterialIcons name="restaurant" size={14} color={colors.primary} />
+              <Text style={[styles.actionText, { color: colors.primary }]}>
+                Alimentos
+              </Text>
+            </TouchableOpacity>
+          )}
+          {onEdit && (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: colors.primaryButtonLight },
+              ]}
+              onPress={() => onEdit(meal)}
+            >
+              <MaterialIcons name="edit" size={14} color={colors.primary} />
+              <Text style={[styles.actionText, { color: colors.primary }]}>
+                Editar
+              </Text>
+            </TouchableOpacity>
+          )}
+          {onDelete && (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: colors.dangerLight },
+              ]}
+              onPress={() => onDelete(meal.id)}
+            >
+              <MaterialIcons name="delete" size={14} color={colors.danger} />
+              <Text style={[styles.actionText, { color: colors.danger }]}>
+                Excluir
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   mealCard: {
@@ -121,5 +186,25 @@ const styles = StyleSheet.create({
   foodText: {
     fontSize: 14,
     flex: 1,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    gap: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    gap: 4,
+  },
+  actionText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 })

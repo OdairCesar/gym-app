@@ -3,28 +3,27 @@ import { Product } from '@/interfaces/Product'
 import { productService } from '@/services/productService'
 import { useApi } from './useApi'
 import { ENV } from '@/constants/environment'
+import { extractList } from '@/utils/apiUtils'
 
 interface UseProductsReturn {
-  // Estados
   products: Product[]
   loading: boolean
 
-  // Funções
   fetchProducts: () => Promise<void>
   createProduct: (productData: Partial<Product>) => Promise<boolean>
   updateProduct: (
-    productId: string,
+    productId: number,
     productData: Partial<Product>,
   ) => Promise<boolean>
-  deleteProduct: (productId: string) => Promise<boolean>
+  deleteProduct: (productId: number) => Promise<boolean>
+  updateStock: (productId: number, stock: number) => Promise<boolean>
   refreshProducts: () => Promise<void>
 
-  // Utilitários
-  getProductById: (productId: string) => Product | undefined
+  getProductById: (productId: number) => Product | undefined
   filterProducts: (filters: {
-    nome?: string
-    categoria?: string
-    preco?: { min?: number; max?: number }
+    name?: string
+    category?: string
+    price?: { min?: number; max?: number }
   }) => Product[]
 }
 
@@ -39,15 +38,9 @@ export const useProducts = (): UseProductsReturn => {
       setLoading(true)
       const result = await executeWithAuth(
         (token) => productService.fetchProducts(token),
-        {
-          showErrorAlert: true,
-          errorMessage: 'Falha ao carregar produtos',
-        },
+        { showErrorAlert: true, errorMessage: 'Falha ao carregar produtos' },
       )
-
-      if (result) {
-        setProducts(result)
-      }
+      if (result) setProducts(extractList<Product>(result))
     } catch (error) {
       console.error('Erro ao carregar produtos:', error)
     } finally {
@@ -65,12 +58,10 @@ export const useProducts = (): UseProductsReturn => {
           errorMessage: 'Falha ao criar produto',
         },
       )
-
       if (result) {
         await fetchProducts()
         return true
       }
-
       return false
     },
     [executeWithAuth, fetchProducts],
@@ -78,7 +69,7 @@ export const useProducts = (): UseProductsReturn => {
 
   const updateProduct = useCallback(
     async (
-      productId: string,
+      productId: number,
       productData: Partial<Product>,
     ): Promise<boolean> => {
       const result = await executeWithAuth(
@@ -89,19 +80,17 @@ export const useProducts = (): UseProductsReturn => {
           errorMessage: 'Falha ao atualizar produto',
         },
       )
-
       if (result) {
         await fetchProducts()
         return true
       }
-
       return false
     },
     [executeWithAuth, fetchProducts],
   )
 
   const deleteProduct = useCallback(
-    async (productId: string): Promise<boolean> => {
+    async (productId: number): Promise<boolean> => {
       const result = await executeWithAuth(
         (token) => productService.deleteProduct(productId, token),
         {
@@ -110,12 +99,29 @@ export const useProducts = (): UseProductsReturn => {
           errorMessage: 'Falha ao deletar produto',
         },
       )
+      if (result !== null) {
+        await fetchProducts()
+        return true
+      }
+      return false
+    },
+    [executeWithAuth, fetchProducts],
+  )
 
+  const updateStock = useCallback(
+    async (productId: number, stock: number): Promise<boolean> => {
+      const result = await executeWithAuth(
+        (token) => productService.updateStock(productId, stock, token),
+        {
+          showSuccessAlert: ENV.showSuccessAlerts,
+          successMessage: 'Estoque atualizado com sucesso',
+          errorMessage: 'Falha ao atualizar estoque',
+        },
+      )
       if (result) {
         await fetchProducts()
         return true
       }
-
       return false
     },
     [executeWithAuth, fetchProducts],
@@ -125,19 +131,18 @@ export const useProducts = (): UseProductsReturn => {
     await fetchProducts()
   }, [fetchProducts])
 
-  // Funções utilitárias
   const getProductById = useCallback(
-    (productId: string): Product | undefined => {
-      return productService.getProductByIdLocal(products, productId)
+    (productId: number): Product | undefined => {
+      return products.find((p) => p.id === productId)
     },
     [products],
   )
 
   const filterProducts = useCallback(
     (filters: {
-      nome?: string
-      categoria?: string
-      preco?: { min?: number; max?: number }
+      name?: string
+      category?: string
+      price?: { min?: number; max?: number }
     }): Product[] => {
       return productService.filterProducts(products, filters)
     },
@@ -145,18 +150,14 @@ export const useProducts = (): UseProductsReturn => {
   )
 
   return {
-    // Estados
     products,
     loading,
-
-    // Funções
     fetchProducts,
     createProduct,
     updateProduct,
     deleteProduct,
+    updateStock,
     refreshProducts,
-
-    // Utilitários
     getProductById,
     filterProducts,
   }

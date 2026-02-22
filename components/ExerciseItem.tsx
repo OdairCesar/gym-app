@@ -19,15 +19,15 @@ import { useAppTheme } from '@/hooks/useAppTheme'
 const SCREEN_WIDTH = Dimensions.get('window').width
 
 interface ExerciseItemProps {
-  exercicio: Exercise
+  exercise: Exercise
   onComplete: () => void
   onSkip: () => void
   disableComplete?: boolean
   disableSkip?: boolean
 }
 
-export function ExerciseItem({
-  exercicio,
+export const ExerciseItem = React.memo(function ExerciseItem({
+  exercise,
   onComplete,
   onSkip,
   disableComplete,
@@ -141,57 +141,43 @@ export function ExerciseItem({
               <Text
                 style={[styles.exerciseOrderText, { color: colors.background }]}
               >
-                {exercicio.ordem}
+                {exercise.priority ?? 0}
               </Text>
             </View>
             <View style={styles.exerciseInfo}>
               <Text style={[styles.exerciseName, { color: colors.text }]}>
-                {exercicio.nome}
+                {exercise.name}
               </Text>
-              {exercicio.tipo && (
+              {exercise.type && (
                 <Text style={[styles.exerciseType, { color: colors.primary }]}>
-                  {exercicio.tipo}
+                  {exercise.type}
                 </Text>
               )}
             </View>
           </View>
 
           {/* Detalhes do exercício em linha */}
-          {(exercicio.series || exercicio.carga || exercicio.descanso) && (
+          {(exercise.reps || exercise.weight || exercise.rest_seconds) && (
             <View style={styles.exerciseDetailsRow}>
-              {exercicio.series && (
+              {exercise.reps && (
                 <Text style={[styles.detailText, { color: colors.primary }]}>
-                  {exercicio.series} série{exercicio.series !== '1' ? 's' : ''}
+                  {exercise.reps}
                 </Text>
               )}
-
-              {exercicio.series && (exercicio.carga || exercicio.descanso) && (
-                <View
-                  style={[
-                    styles.detailSeparator,
-                    { backgroundColor: colors.border },
-                  ]}
-                />
+              {exercise.reps && (exercise.weight || exercise.rest_seconds) && (
+                <View style={[styles.detailSeparator, { backgroundColor: colors.border }]} />
               )}
-
-              {exercicio.carga && (
+              {!!exercise.weight && (
                 <Text style={[styles.detailText, { color: '#FF9800' }]}>
-                  {exercicio.carga}
+                  {exercise.weight}kg
                 </Text>
               )}
-
-              {exercicio.carga && exercicio.descanso && (
-                <View
-                  style={[
-                    styles.detailSeparator,
-                    { backgroundColor: colors.border },
-                  ]}
-                />
+              {!!exercise.weight && !!exercise.rest_seconds && (
+                <View style={[styles.detailSeparator, { backgroundColor: colors.border }]} />
               )}
-
-              {exercicio.descanso && (
+              {!!exercise.rest_seconds && (
                 <Text style={[styles.detailText, { color: '#4CAF50' }]}>
-                  {exercicio.descanso} descanso
+                  {exercise.rest_seconds}s descanso
                 </Text>
               )}
             </View>
@@ -212,7 +198,7 @@ export function ExerciseItem({
       </View>
     </GestureDetector>
   )
-}
+})
 
 const styles = StyleSheet.create({
   swipeContainer: {
