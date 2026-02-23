@@ -16,7 +16,6 @@ export default ({ config }) => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.odairdev.gymapp',
-    buildNumber: '1',
     icon: './assets/images/gyim/ios/AppIcon.appiconset',
   },
   android: {
@@ -28,7 +27,6 @@ export default ({ config }) => ({
     icon: './assets/images/gyim/android/mipmap-hdpi/ic_launcher.png',
     edgeToEdgeEnabled: true,
     package: 'com.odairdev.gymapp',
-    versionCode: 1,
     permissions: [
       'android.permission.RECORD_AUDIO',
       'android.permission.CAMERA',
