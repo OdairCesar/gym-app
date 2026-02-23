@@ -2,6 +2,7 @@
   "name": "gyim",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "packageManager": "npm@10.9.2",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
