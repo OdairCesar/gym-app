@@ -5,13 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
   Linking,
 } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { Product } from '@/interfaces/Product'
+import { toast } from '@/utils/toast'
 
 interface ProductCardProps {
   product: Product
@@ -62,12 +62,12 @@ export const ProductCard = React.memo(function ProductCard({
       const message = `Olá! Tenho interesse em comprar o produto *${product.name}* por R$ ${price}. Poderia me ajudar?`
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
       Linking.openURL(url).catch(() =>
-        Alert.alert('Erro', 'Não foi possível abrir o WhatsApp.'),
+        toast.error('Erro', 'Não foi possível abrir o WhatsApp.'),
       )
     } else if (onBuy) {
       onBuy(product)
     } else {
-      Alert.alert('Atenção', 'Contato da academia não disponível.')
+      toast.info('Atenção', 'Contato da academia não disponível.')
     }
   }
 

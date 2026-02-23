@@ -5,7 +5,8 @@
 
 // Base URL da API
 // Dispositivo físico (Android/iOS) na mesma rede Wi-Fi:
-export const API_BASE_URL = 'http://192.168.1.6:3333'
+export const API_BASE_URL = 'https://gym-api-lpj1.onrender.com'
+// export const API_BASE_URL = 'http://192.168.1.6:3333'
 
 // Endpoints da API
 export const API_ENDPOINTS = {

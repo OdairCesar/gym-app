@@ -29,6 +29,7 @@ import { useTrainingState } from '@/hooks/useTrainingState'
 import { STORAGE_COMPLETED, STORAGE_SKIPPED } from '@/constants/storageKeys'
 
 import { Training } from '@/interfaces/Training'
+import { toast } from '@/utils/toast'
 
 type Filter = 'all' | 'completed' | 'skipped'
 
@@ -77,7 +78,7 @@ export default function TrainingExerciseScreen() {
       await pauseTraining()
       router.back() // Volta para a lista de treinos
     } catch (error) {
-      Alert.alert('Erro', 'Ocorreu um erro ao pausar o treino')
+      toast.error('Erro', 'Ocorreu um erro ao pausar o treino')
       console.error('Erro ao pausar treino:', error)
     }
   }
@@ -97,7 +98,7 @@ export default function TrainingExerciseScreen() {
         ],
       )
     } catch (error) {
-      Alert.alert('Erro', 'Ocorreu um erro ao finalizar o treino')
+      toast.error('Erro', 'Ocorreu um erro ao finalizar o treino')
       console.error('Erro ao finalizar treino:', error)
     }
   }

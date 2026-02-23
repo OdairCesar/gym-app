@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { View, FlatList, Alert, RefreshControl, Text } from 'react-native'
 import { useGyms } from '@/hooks/useGyms'
 import { Gym, GymStats } from '@/interfaces/Gym'
+import { toast } from '@/utils/toast'
 import GymCard from '@/components/common/GymCard'
 import GymFormModal from '@/components/common/GymFormModal'
-import GymStatsCard from '@/components/common/GymStatsCard'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
@@ -24,18 +24,40 @@ export default function GymsScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const [isFormModalVisible, setIsFormModalVisible] = useState(false)
   const [editingGym, setEditingGym] = useState<Gym | null>(null)
-  const [selectedGymStats, setSelectedGymStats] = useState<GymStats | null>(
-    null,
-  )
-  const [loadingStats, setLoadingStats] = useState(false)
+  const [gymStatsMap, setGymStatsMap] = useState<Record<number, GymStats>>({})
+  const [loadingStatsIds, setLoadingStatsIds] = useState<number[]>([])
 
   const loadGyms = useCallback(async () => {
     await fetchGyms()
   }, [fetchGyms])
 
+  const loadAllStats = useCallback(
+    async (gymList: Gym[]) => {
+      const ids = gymList.map((g) => g.id)
+      setLoadingStatsIds(ids)
+      const entries = await Promise.all(
+        gymList.map(async (g) => {
+          const s = await fetchGymStats(g.id)
+          return [g.id, s] as [number, GymStats | null]
+        }),
+      )
+      const map: Record<number, GymStats> = {}
+      for (const [id, s] of entries) {
+        if (s) map[id] = s
+      }
+      setGymStatsMap(map)
+      setLoadingStatsIds([])
+    },
+    [fetchGymStats],
+  )
+
   useEffect(() => {
     loadGyms()
   }, [loadGyms])
+
+  useEffect(() => {
+    if (gyms.length > 0) loadAllStats(gyms)
+  }, [gyms, loadAllStats])
 
   const onRefresh = async () => {
     setRefreshing(true)
@@ -62,7 +84,7 @@ export default function GymsScreen() {
       }
       setIsFormModalVisible(false)
     } catch {
-      Alert.alert('Erro', 'Não foi possível salvar a academia.')
+      toast.error('Erro', 'Não foi possível salvar a academia.')
     }
   }
 
@@ -75,20 +97,12 @@ export default function GymsScreen() {
         onPress: async () => {
           try {
             await deleteGym(gymId)
-            setSelectedGymStats(null)
           } catch {
-            Alert.alert('Erro', 'Não foi possível excluir a academia.')
+            toast.error('Erro', 'Não foi possível excluir a academia.')
           }
         },
       },
     ])
-  }
-
-  const handleViewStats = async (gym: Gym) => {
-    setLoadingStats(true)
-    const stats = await fetchGymStats(gym.id)
-    setSelectedGymStats(stats)
-    setLoadingStats(false)
   }
 
   const headerButtons: HeaderButton[] = [
@@ -102,10 +116,6 @@ export default function GymsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <PageHeader title="Academias" buttons={headerButtons} />
 
-      {selectedGymStats && (
-        <GymStatsCard stats={selectedGymStats} loading={loadingStats} />
-      )}
-
       <FlatList
         data={gyms}
         keyExtractor={(item) => item.id.toString()}
@@ -118,7 +128,8 @@ export default function GymsScreen() {
             gym={item}
             onEdit={openEditModal}
             onDelete={handleDeleteGym}
-            onViewStats={handleViewStats}
+            stats={gymStatsMap[item.id] ?? null}
+            loadingStats={loadingStatsIds.includes(item.id)}
           />
         )}
         ListEmptyComponent={

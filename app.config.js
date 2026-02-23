@@ -1,32 +1,34 @@
 export default ({ config }) => ({
   ...config,
-  name: 'Physical Academia - Seu App de Treino',
-  slug: 'gym',
+  name: 'Gyim - Seu App de Treino e Dieta',
+  slug: 'gyim',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/images/physical-academia/ios/iTunesArtwork@2x.png',
-  scheme: 'gym',
+  icon: './assets/images/gyim/ios/iTunesArtwork@2x.png',
+  scheme: 'gyim',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   splash: {
-    image: './assets/images/physical-academia/android/ic_launcher-web.png',
+    image: './assets/images/gyim/android/ic_launcher-web.png',
     resizeMode: 'contain',
     backgroundColor: '#ffffff',
   },
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.odairdev.gymapp',
-    icon: './assets/images/physical-academia/ios/AppIcon.appiconset',
+    buildNumber: '1',
+    icon: './assets/images/gyim/ios/AppIcon.appiconset',
   },
   android: {
     adaptiveIcon: {
       foregroundImage:
-        './assets/images/physical-academia/android/mipmap-hdpi/ic_launcher_foreground.png',
+        './assets/images/gyim/android/mipmap-hdpi/ic_launcher_foreground.png',
       backgroundColor: '#ffffff',
     },
-    icon: './assets/images/physical-academia/android/mipmap-hdpi/ic_launcher.png',
+    icon: './assets/images/gyim/android/mipmap-hdpi/ic_launcher.png',
     edgeToEdgeEnabled: true,
     package: 'com.odairdev.gymapp',
+    versionCode: 1,
     permissions: [
       'android.permission.RECORD_AUDIO',
       'android.permission.CAMERA',
@@ -35,7 +37,7 @@ export default ({ config }) => ({
   web: {
     bundler: 'metro',
     output: 'static',
-    favicon: './assets/images/physical-academia/android/ic_launcher-web.png',
+    favicon: './assets/images/gyim/android/ic_launcher-web.png',
   },
   plugins: [
     'expo-router',
@@ -43,7 +45,7 @@ export default ({ config }) => ({
     [
       'expo-splash-screen',
       {
-        image: './assets/images/physical-academia/android/ic_launcher-web.png',
+        image: './assets/images/gyim/android/ic_launcher-web.png',
         imageWidth: 200,
         resizeMode: 'contain',
         backgroundColor: '#ffffff',

@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTrainings } from '@/hooks/useTrainings'
 import { useExercises } from '@/hooks/useExercises'
 import { useUsers } from '@/hooks/useUsers'
+import { toast } from '@/utils/toast'
 import { Training } from '@/interfaces/Training'
 import { Exercise } from '@/interfaces/Exercise'
 import TrainingFormModal from '@/components/common/TrainingFormModal'
@@ -126,7 +127,7 @@ export default function TrainingsScreen() {
 
   const saveTraining = async () => {
     if (!formData.name?.trim()) {
-      Alert.alert('Atenção', 'O nome do treino é obrigatório.')
+      toast.info('Atenção', 'O nome do treino é obrigatório.')
       return
     }
     try {
@@ -138,7 +139,7 @@ export default function TrainingsScreen() {
       setIsFormModalVisible(false)
       await loadTrainings()
     } catch {
-      Alert.alert('Erro', 'Não foi possível salvar o treino.')
+      toast.error('Erro', 'Não foi possível salvar o treino.')
     }
   }
 
@@ -154,7 +155,7 @@ export default function TrainingsScreen() {
             if (selectedTraining?.id === trainingId) setSelectedTraining(null)
             await loadTrainings()
           } catch {
-            Alert.alert('Erro', 'Não foi possível excluir o treino.')
+            toast.error('Erro', 'Não foi possível excluir o treino.')
           }
         },
       },
@@ -175,7 +176,7 @@ export default function TrainingsScreen() {
         await refreshTrainingExercises(selectedTraining.id)
       }
     } catch {
-      Alert.alert('Erro', 'Não foi possível adicionar o exercício.')
+      toast.error('Erro', 'Não foi possível adicionar o exercício.')
     }
     setIsExerciseModalVisible(false)
     setEditingExercise(null)
@@ -187,7 +188,7 @@ export default function TrainingsScreen() {
       await updateExercise(editingExercise.id, data)
       await refreshTrainingExercises(selectedTraining.id)
     } catch {
-      Alert.alert('Erro', 'Não foi possível editar o exercício.')
+      toast.error('Erro', 'Não foi possível editar o exercício.')
     }
     setIsExerciseModalVisible(false)
     setEditingExercise(null)
@@ -208,7 +209,7 @@ export default function TrainingsScreen() {
               await removeExerciseFromTraining(selectedTraining.id, exerciseId)
               await refreshTrainingExercises(selectedTraining.id)
             } catch {
-              Alert.alert('Erro', 'Não foi possível remover o exercício.')
+              toast.error('Erro', 'Não foi possível remover o exercício.')
             }
           },
         },

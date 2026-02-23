@@ -18,6 +18,7 @@ import GymPermissionFormModal from '@/components/common/GymPermissionFormModal'
 import UserPermissionFormModal from '@/components/common/UserPermissionFormModal'
 import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
 import { useAppTheme } from '@/hooks/useAppTheme'
+import { toast } from '@/utils/toast'
 
 type TabType = 'gym' | 'user'
 
@@ -133,7 +134,7 @@ export default function PermissionsScreen() {
 
   const saveGymPermission = async () => {
     if (!gymFormData.gymId || !gymFormData.action || !gymFormData.resource) {
-      Alert.alert('Erro', 'Preencha todos os campos obrigatórios')
+      toast.error('Erro', 'Preencha todos os campos obrigatórios')
       return
     }
     let success: boolean
@@ -205,7 +206,7 @@ export default function PermissionsScreen() {
       !userFormData.action ||
       !userFormData.resource
     ) {
-      Alert.alert('Erro', 'Preencha todos os campos obrigatórios')
+      toast.error('Erro', 'Preencha todos os campos obrigatórios')
       return
     }
     let success: boolean

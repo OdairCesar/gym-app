@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import 'react-native-reanimated'
 
+import Toast, { BaseToast, ErrorToast, ToastConfig } from 'react-native-toast-message'
 import { AuthProvider } from '@/context/authContext'
 import { ThemeProvider, useTheme } from '@/context/themeContext'
 
@@ -72,6 +73,7 @@ function NavigationContainer() {
       <StatusBarController />
       <NavigationThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <AuthProvider>
+
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(client)" options={{ headerShown: false }} />
@@ -107,8 +109,54 @@ function NavigationContainer() {
           </Stack>
         </AuthProvider>
       </NavigationThemeProvider>
+      <ThemedToast />
     </>
   )
+}
+
+function ThemedToast() {
+  const { currentColors } = useTheme()
+
+  const toastConfig: ToastConfig = {
+    success: (props) => (
+      <BaseToast
+        {...props}
+        style={{
+          borderLeftColor: currentColors.success,
+          backgroundColor: currentColors.backgroundSecondary,
+        }}
+        contentContainerStyle={{ paddingHorizontal: 15 }}
+        text1Style={{ color: currentColors.text, fontSize: 14, fontWeight: '600' }}
+        text2Style={{ color: currentColors.textSecondary, fontSize: 12 }}
+      />
+    ),
+    error: (props) => (
+      <ErrorToast
+        {...props}
+        style={{
+          borderLeftColor: currentColors.error,
+          backgroundColor: currentColors.backgroundSecondary,
+        }}
+        contentContainerStyle={{ paddingHorizontal: 15 }}
+        text1Style={{ color: currentColors.text, fontSize: 14, fontWeight: '600' }}
+        text2Style={{ color: currentColors.textSecondary, fontSize: 12 }}
+      />
+    ),
+    info: (props) => (
+      <BaseToast
+        {...props}
+        style={{
+          borderLeftColor: currentColors.info,
+          backgroundColor: currentColors.backgroundSecondary,
+        }}
+        contentContainerStyle={{ paddingHorizontal: 15 }}
+        text1Style={{ color: currentColors.text, fontSize: 14, fontWeight: '600' }}
+        text2Style={{ color: currentColors.textSecondary, fontSize: 12 }}
+      />
+    ),
+  }
+
+  return <Toast config={toastConfig} />
 }
 
 function StatusBarController() {

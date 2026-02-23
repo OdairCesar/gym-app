@@ -18,6 +18,7 @@ import { Exercise } from '@/interfaces/Exercise'
 import TrainingFormModal from '@/components/common/TrainingFormModal'
 import ExerciseFormModal from '@/components/common/ExerciseFormModal'
 import ExerciseList from '@/components/common/ExerciseList'
+import { toast } from '@/utils/toast'
 import GenericFilterModal, {
   FilterField,
 } from '@/components/common/GenericFilterModal'
@@ -75,6 +76,7 @@ export default function TrainingsScreen() {
     name: '',
     description: '',
   })
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [filters, setFilters] = useState<FilterState>({
     name: '',
     userId: '',
@@ -118,30 +120,36 @@ export default function TrainingsScreen() {
   const openCreateModal = () => {
     setEditingTraining(null)
     setFormData({ name: '', description: '' })
+    setSelectedUserId(null)
     setIsFormModalVisible(true)
   }
 
   const openEditModal = (training: Training) => {
     setEditingTraining(training)
     setFormData({ name: training.name, description: training.description })
+    setSelectedUserId(training.userId ?? null)
     setIsFormModalVisible(true)
   }
 
   const saveTraining = async () => {
     if (!formData.name?.trim()) {
-      Alert.alert('Atenção', 'O nome do treino é obrigatório.')
+      toast.info('Atenção', 'O nome do treino é obrigatório.')
       return
     }
     try {
+      const payload = {
+        ...formData,
+        ...(selectedUserId != null ? { userId: selectedUserId } : {}),
+      }
       if (editingTraining) {
-        await updateTraining(editingTraining.id, formData)
+        await updateTraining(editingTraining.id, payload)
       } else {
-        await createTraining(formData)
+        await createTraining(payload)
       }
       setIsFormModalVisible(false)
       await loadTrainings()
     } catch (err) {
-      Alert.alert('Erro', 'Não foi possível salvar o treino.')
+      toast.error('Erro', 'Não foi possível salvar o treino.')
     }
   }
 
@@ -157,7 +165,7 @@ export default function TrainingsScreen() {
             if (selectedTraining?.id === trainingId) setSelectedTraining(null)
             await loadTrainings()
           } catch {
-            Alert.alert('Erro', 'Não foi possível excluir o treino.')
+            toast.error('Erro', 'Não foi possível excluir o treino.')
           }
         },
       },
@@ -165,6 +173,7 @@ export default function TrainingsScreen() {
   }
 
   const handleViewExercises = async (training: Training) => {
+    setTrainingExercises([])
     setSelectedTraining(training)
     await refreshTrainingExercises(training.id)
   }
@@ -178,7 +187,7 @@ export default function TrainingsScreen() {
         await refreshTrainingExercises(selectedTraining.id)
       }
     } catch {
-      Alert.alert('Erro', 'Não foi possível adicionar o exercício.')
+      toast.error('Erro', 'Não foi possível adicionar o exercício.')
     }
     setIsExerciseModalVisible(false)
     setEditingExercise(null)
@@ -190,7 +199,7 @@ export default function TrainingsScreen() {
       await updateExercise(editingExercise.id, data)
       await refreshTrainingExercises(selectedTraining.id)
     } catch {
-      Alert.alert('Erro', 'Não foi possível editar o exercício.')
+      toast.error('Erro', 'Não foi possível editar o exercício.')
     }
     setIsExerciseModalVisible(false)
     setEditingExercise(null)
@@ -211,7 +220,7 @@ export default function TrainingsScreen() {
               await removeExerciseFromTraining(selectedTraining.id, exerciseId)
               await refreshTrainingExercises(selectedTraining.id)
             } catch {
-              Alert.alert('Erro', 'Não foi possível remover o exercício.')
+              toast.error('Erro', 'Não foi possível remover o exercício.')
             }
           },
         },
@@ -390,6 +399,9 @@ export default function TrainingsScreen() {
         onFormChange={(field, value) =>
           setFormData((prev) => ({ ...prev, [field]: value }))
         }
+        users={clients.map((c) => ({ id: c.id, name: c.name }))}
+        selectedUserId={selectedUserId}
+        onUserChange={setSelectedUserId}
       />
 
       <ExerciseFormModal

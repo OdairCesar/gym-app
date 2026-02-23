@@ -1,21 +1,31 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useAppTheme } from '@/hooks/useAppTheme'
-import { Gym } from '@/interfaces/Gym'
+import { Gym, GymStats } from '@/interfaces/Gym'
+
+const statItems = [
+  { key: 'totalUsers', label: 'Usuários', icon: 'account-group-outline' as const },
+  { key: 'activeUsers', label: 'Ativos', icon: 'account-check-outline' as const },
+  { key: 'totalTrainings', label: 'Treinos', icon: 'dumbbell' as const },
+  { key: 'totalDiets', label: 'Dietas', icon: 'food-apple-outline' as const },
+  { key: 'totalProducts', label: 'Produtos', icon: 'package-variant-closed' as const },
+]
 
 interface GymCardProps {
   gym: Gym
   onEdit: (gym: Gym) => void
   onDelete: (gymId: number) => void
-  onViewStats?: (gym: Gym) => void
+  stats?: GymStats | null
+  loadingStats?: boolean
 }
 
 function GymCard({
   gym,
   onEdit,
   onDelete,
-  onViewStats,
+  stats,
+  loadingStats,
 }: GymCardProps) {
   const { colors } = useAppTheme()
 
@@ -110,29 +120,29 @@ function GymCard({
         </Text>
       ) : null}
 
-      <View style={styles.actions}>
-        {onViewStats && (
-          <TouchableOpacity
-            style={[
-              styles.actionBtn,
-              {
-                backgroundColor: colors.primary + '15',
-                borderColor: colors.primary,
-              },
-            ]}
-            onPress={() => onViewStats(gym)}
-          >
-            <MaterialCommunityIcons
-              name="chart-bar"
-              size={16}
-              color={colors.primary}
-            />
-            <Text style={[styles.actionText, { color: colors.primary }]}>
-              Estatísticas
-            </Text>
-          </TouchableOpacity>
-        )}
+      {/* Stats inline */}
+      {loadingStats && (
+        <View style={[styles.statsContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="small" color={colors.primary} />
+        </View>
+      )}
+      {!loadingStats && stats && (
+        <View style={[styles.statsContainer, { backgroundColor: colors.background }]}>
+          <View style={styles.statsGrid}>
+            {statItems.map(({ key, label, icon }) => (
+              <View key={key} style={styles.statBox}>
+                <MaterialCommunityIcons name={icon} size={14} color={colors.primary} />
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{label}</Text>
+                <Text style={[styles.statValue, { color: colors.text }]}>
+                  {(stats as unknown as Record<string, number>)[key] ?? 0}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
+      <View style={styles.actions}>
         <TouchableOpacity
           style={[
             styles.actionBtn,
@@ -228,6 +238,33 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 6,
     marginBottom: 4,
+  },
+  statsContainer: {
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 12,
+    marginBottom: 2,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  statBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
+    paddingVertical: 5,
+    paddingHorizontal: 4,
+    gap: 6,
+  },
+  statValue: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginLeft: 'auto',
+  },
+  statLabel: {
+    fontSize: 12,
+    flex: 1,
   },
   actions: {
     flexDirection: 'row',

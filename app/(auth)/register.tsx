@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import {
   TextInput,
   View,
@@ -15,10 +15,14 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker'
 import { MaskedTextInput } from 'react-native-mask-text'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { Picker } from '@react-native-picker/picker'
 
 import { useAuth } from '@/hooks/useAuth'
 import { formatDate } from '@/utils/formatDate'
 import { useAppTheme } from '@/hooks/useAppTheme'
+import { apiService } from '@/services/apiService'
+import { API_ENDPOINTS } from '@/constants/api'
+import { Gym } from '@/interfaces/Gym'
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -32,14 +36,24 @@ export default function Register() {
     gender: '',
     profession: '',
     address: '',
+    gymId: null as number | null,
     isAdmin: false,
     isPersonal: false,
   })
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [registered, setRegistered] = useState(false)
+  const [gyms, setGyms] = useState<Gym[]>([])
   const { register } = useAuth()
   const { colors } = useAppTheme()
   const router = useRouter()
+
+  useEffect(() => {
+    apiService.get<Gym[]>(API_ENDPOINTS.GYMS).then((res) => {
+      if (res.status === 'success' && Array.isArray(res.data)) {
+        setGyms(res.data)
+      }
+    })
+  }, [])
 
   const handleRegister = async () => {
     if (!form.name || !form.email || !form.password) {
@@ -47,9 +61,19 @@ export default function Register() {
     }
 
     const userData = {
-      ...form,
-      birthDate: form.birthDate ? parseDateToISO(form.birthDate) : null,
-      gender: (form.gender as 'M' | 'F' | 'O') || null,
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      password_confirmation: form.password_confirmation,
+      ...(form.birthDate ? { birthDate: parseDateToISO(form.birthDate) } : {}),
+      ...(form.phone ? { phone: form.phone } : {}),
+      ...(form.cpf ? { cpf: form.cpf } : {}),
+      ...(form.gender ? { gender: form.gender as 'M' | 'F' | 'O' } : {}),
+      ...(form.profession ? { profession: form.profession } : {}),
+      ...(form.address ? { address: form.address } : {}),
+      ...(form.gymId != null ? { gymId: form.gymId } : {}),
+      isAdmin: form.isAdmin,
+      isPersonal: form.isPersonal,
     }
 
     const success = await register(userData)
@@ -69,7 +93,9 @@ export default function Register() {
 
   const parseDateToISO = (dateString: string): string => {
     const [day, month, year] = dateString.split('/').map(Number)
-    return new Date(year, month - 1, day).toISOString()
+    const mm = String(month).padStart(2, '0')
+    const dd = String(day).padStart(2, '0')
+    return `${year}-${mm}-${dd}`
   }
 
   const parseDate = (dateString: string): Date => {
@@ -358,6 +384,32 @@ export default function Register() {
           value={form.address}
           placeholderTextColor={colors.textSecondary}
         />
+
+        <View
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: colors.border,
+              padding: 0,
+            },
+          ]}
+        >
+          <Picker
+            selectedValue={form.gymId}
+            onValueChange={(value) => setForm({ ...form, gymId: value })}
+            style={{ color: colors.text }}
+            dropdownIconColor={colors.textSecondary}
+          >
+            <Picker.Item
+              label="Selecione a Academia *"
+              value={null}
+            />
+            {gyms.map((gym) => (
+              <Picker.Item key={gym.id} label={gym.name} value={gym.id} />
+            ))}
+          </Picker>
+        </View>
 
         <View style={styles.labelContainer}>
           <Text style={[styles.label, { color: colors.text }]}>

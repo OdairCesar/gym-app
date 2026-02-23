@@ -90,12 +90,12 @@ function UserCard({ user, onEdit, onDelete }: UserCardProps) {
         <Text style={styles.userName}>{user.name}</Text>
         <Text style={styles.userEmail}>{user.email}</Text>
         <View style={styles.userTags}>
-          {isAdmin && <Text style={[styles.tag, styles.tagError]}>Admin</Text>}
+          {isAdmin && <Text style={[styles.tag, styles.tagPrimary]}>Admin</Text>}
           {isPersonal && (
             <Text style={[styles.tag, styles.tagPrimary]}>Personal</Text>
           )}
           {!isAdmin && !isPersonal && (
-            <Text style={[styles.tag, styles.tagSecondary]}>Aluno</Text>
+            <Text style={[styles.tag, styles.tagPrimary]}>Aluno</Text>
           )}
           {!isActive && (
             <Text

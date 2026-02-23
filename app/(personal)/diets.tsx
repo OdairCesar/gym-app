@@ -30,6 +30,7 @@ import PageHeader, { HeaderButton } from '@/components/common/PageHeader'
 import DietCard from '@/components/common/DietCard'
 import { MealCard } from '@/components/common/MealCard'
 import { useAppTheme } from '@/hooks/useAppTheme'
+import { toast } from '@/utils/toast'
 
 interface FilterState {
   name: string
@@ -185,7 +186,7 @@ export default function DietsScreen() {
         setFilteredDiets(diets)
       }
     } catch (error) {
-      Alert.alert('Erro', 'Erro inesperado')
+      toast.error('Erro', 'Erro inesperado')
     }
   }
 

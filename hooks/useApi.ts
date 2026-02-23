@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
-import { Alert } from 'react-native'
 import { useAuth } from '@/context/authContext'
 import { ApiResponse } from '@/services/apiService'
+import { toast } from '@/utils/toast'
 
 interface UseApiOptions {
   showSuccessAlert?: boolean
@@ -38,34 +38,34 @@ export const useApi = (): UseApiReturn => {
         await logout()
         const msg = 'Sessão expirada. Faça login novamente'
         setError(msg)
-        Alert.alert('Sessão Expirada', msg)
+        toast.error('Sessão Expirada', msg)
         return
       }
 
       if (statusCode === 403) {
         const msg = 'Sem permissão para realizar esta ação'
         setError(msg)
-        Alert.alert('Acesso Negado', msg)
+        toast.error('Acesso Negado', msg)
         return
       }
 
       if (statusCode === 422 && validationErrors && validationErrors.length > 0) {
         const msgs = validationErrors.map((e) => `• ${e.message}`).join('\n')
         setError(msgs)
-        Alert.alert('Dados Inválidos', msgs)
+        toast.error('Dados Inválidos', msgs)
         return
       }
 
       if (statusCode === 0) {
         const msg = 'Sem conexão com a internet. Verifique sua rede'
         setError(msg)
-        Alert.alert('Sem Conexão', msg)
+        toast.error('Sem Conexão', msg)
         return
       }
 
       const errorMsg = message || fallbackMessage
       setError(errorMsg)
-      Alert.alert('Erro', errorMsg)
+      toast.error('Erro', errorMsg)
     },
     [logout],
   )
@@ -92,7 +92,7 @@ export const useApi = (): UseApiReturn => {
           const authError = 'Token de autenticação não encontrado'
           setError(authError)
           if (showErrorAlert) {
-            Alert.alert('Erro', authError)
+            toast.error('Erro', authError)
           }
           return null
         }
@@ -101,7 +101,7 @@ export const useApi = (): UseApiReturn => {
 
         if (response.status === 'success' && response.data) {
           if (showSuccessAlert) {
-            Alert.alert('Sucesso', successMessage)
+            toast.success('Sucesso', successMessage)
           }
           return response.data
         } else {
@@ -120,7 +120,7 @@ export const useApi = (): UseApiReturn => {
           error instanceof Error ? error.message : 'Erro de conexão'
         setError(errorMsg)
         if (showErrorAlert) {
-          Alert.alert('Erro', errorMsg)
+          toast.error('Erro', errorMsg)
         }
         return null
       } finally {
@@ -150,7 +150,7 @@ export const useApi = (): UseApiReturn => {
 
         if (response.status === 'success' && response.data) {
           if (showSuccessAlert) {
-            Alert.alert('Sucesso', successMessage)
+            toast.success('Sucesso', successMessage)
           }
           return response.data
         } else {
@@ -169,7 +169,7 @@ export const useApi = (): UseApiReturn => {
           error instanceof Error ? error.message : 'Erro de conexão'
         setError(errorMsg)
         if (showErrorAlert) {
-          Alert.alert('Erro', errorMsg)
+          toast.error('Erro', errorMsg)
         }
         return null
       } finally {

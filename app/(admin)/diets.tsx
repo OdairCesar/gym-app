@@ -18,6 +18,7 @@ import { useDiets } from '@/hooks/useDiets'
 import { useMeals } from '@/hooks/useMeals'
 import { useFoods } from '@/hooks/useFoods'
 import { Diet } from '@/interfaces/Diet'
+import { toast } from '@/utils/toast'
 import { Meal } from '@/interfaces/Meal'
 import DietFormModal from '@/components/common/DietFormModal'
 import MealFormModal from '@/components/common/MealFormModal'
@@ -182,7 +183,7 @@ export default function DietsScreen() {
         setFilteredDiets(diets)
       }
     } catch (error) {
-      Alert.alert('Erro', 'Erro inesperado')
+      toast.error('Erro', 'Erro inesperado')
     }
   }
 

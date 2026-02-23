@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { useUsers } from '@/hooks/useUsers'
 import { User } from '@/interfaces/User'
+import { toast } from '@/utils/toast'
 import UserCard from '@/components/admin/UserCard'
 import PendingUserCard from '@/components/admin/PendingUserCard'
 import GenericFormModal, {
@@ -190,12 +191,13 @@ export default function UsersScreen() {
   const saveUser = async () => {
     try {
       if (!editingUser && !formData.password) {
-        Alert.alert('Erro', 'Senha é obrigatória para novos usuários')
+        toast.error('Erro', 'Senha é obrigatória para novos usuários')
         return
       }
 
       const userData = { ...formData }
       if (userData.password === '') delete userData.password
+      if (userData.cpf) userData.cpf = userData.cpf.replace(/\D/g, '')
 
       const success = editingUser
         ? await updateUser(editingUser.id, userData)
@@ -207,7 +209,7 @@ export default function UsersScreen() {
         await fetchUsers()
       }
     } catch (error) {
-      Alert.alert('Erro', 'Erro ao salvar usuário')
+      toast.error('Erro', 'Erro ao salvar usuário')
     }
   }
 
@@ -253,7 +255,7 @@ export default function UsersScreen() {
             await deleteUserHook(userId)
             await fetchUsers()
           } catch (error) {
-            Alert.alert('Erro', 'Erro ao deletar usuário')
+            toast.error('Erro', 'Erro ao deletar usuário')
           }
         },
       },

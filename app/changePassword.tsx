@@ -2,13 +2,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
 } from 'react-native'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'expo-router'
 import { useAppTheme } from '@/hooks/useAppTheme'
+import { toast } from '@/utils/toast'
 
 export default function ChangePasswordScreen() {
   const { changePassword } = useAuth()
@@ -23,7 +23,7 @@ export default function ChangePasswordScreen() {
 
   const handlePasswordChange = async () => {
     if (form.new !== form.confirm) {
-      Alert.alert('Erro', 'A nova senha e a confirmação não coincidem.')
+      toast.error('Erro', 'A nova senha e a confirmação não coincidem.')
       return
     }
 

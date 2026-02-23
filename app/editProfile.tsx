@@ -48,7 +48,7 @@ export default function EditProfileScreen() {
       name: form.name,
       phone: form.phone,
       birthDate: form.birthDate || undefined,
-      cpf: form.cpf,
+      cpf: form.cpf ? form.cpf.replace(/\D/g, '') : form.cpf,
       gender: form.gender as 'M' | 'F' | 'O',
       address: form.address,
       profession: form.profession,
