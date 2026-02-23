@@ -4,27 +4,27 @@ export default ({ config }) => ({
   slug: 'gym',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/images/gyim/ios/iTunesArtwork@2x.png',
+  icon: './assets/images/ios/iTunesArtwork@2x.png',
   scheme: 'gym',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   splash: {
-    image: './assets/images/gyim/android/ic_launcher-web.png',
+    image: './assets/images/android/ic_launcher-web.png',
     resizeMode: 'contain',
     backgroundColor: '#ffffff',
   },
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.odairdev.gymapp',
-    icon: './assets/images/gyim/ios/AppIcon.appiconset',
+    icon: './assets/images/ios/AppIcon.appiconset',
   },
   android: {
     adaptiveIcon: {
       foregroundImage:
-        './assets/images/gyim/android/mipmap-hdpi/ic_launcher_foreground.png',
+        './assets/images/android/mipmap-hdpi/ic_launcher_foreground.png',
       backgroundColor: '#ffffff',
     },
-    icon: './assets/images/gyim/android/mipmap-hdpi/ic_launcher.png',
+    icon: './assets/images/android/mipmap-hdpi/ic_launcher.png',
     edgeToEdgeEnabled: true,
     package: 'com.odairdev.gymapp',
     permissions: [
@@ -35,7 +35,7 @@ export default ({ config }) => ({
   web: {
     bundler: 'metro',
     output: 'static',
-    favicon: './assets/images/gyim/android/ic_launcher-web.png',
+    favicon: './assets/images/android/ic_launcher-web.png',
   },
   plugins: [
     'expo-router',
@@ -43,7 +43,7 @@ export default ({ config }) => ({
     [
       'expo-splash-screen',
       {
-        image: './assets/images/gyim/android/ic_launcher-web.png',
+        image: './assets/images/android/ic_launcher-web.png',
         imageWidth: 200,
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
