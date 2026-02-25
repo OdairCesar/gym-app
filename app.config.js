@@ -2,7 +2,7 @@ export default ({ config }) => ({
   ...config,
   name: 'Gyim - Seu App de Treino e Dieta',
   slug: 'gym',
-  version: '1.0.0',
+  version: '1.0.1',
   orientation: 'portrait',
   icon: './assets/images/ios/iTunesArtwork@2x.png',
   scheme: 'gym',
