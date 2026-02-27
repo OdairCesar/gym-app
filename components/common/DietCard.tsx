@@ -119,6 +119,8 @@ function DietCard({
     actions: {
       flexDirection: 'row',
       justifyContent: 'flex-end',
+      flexWrap: 'wrap',
+      gap: 8,
     },
     actionButton: {
       flexDirection: 'row',
@@ -126,7 +128,6 @@ function DietCard({
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 6,
-      marginLeft: 8,
     },
     assignButton: {
       backgroundColor: colors.successLight,
